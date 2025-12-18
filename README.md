@@ -34,3 +34,10 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Supabase Storage (local)
+
+- Start the local stack with `docker compose up` (includes Postgres, Auth, Storage, Realtime, Studio on `http://localhost:54323`).
+- Env keys for local storage live in `.env` (`NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=...`, `SUPABASE_SERVICE_ROLE_KEY=...`, bucket `images`).
+- Upload images from the client with `uploadImage(file, 'folder')` from `src/lib/storage.js` (posts to `/api/upload` using the service role key on the server).
+- For an existing path, get the CDN/public URL with `getPublicImageUrl(path)`; images bucket is public by default.
