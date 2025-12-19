@@ -1,27 +1,28 @@
 services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: literakids-web
-    restart: "no"
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-      - MONGODB_URI=mongodb://mongodb:27017/literakids
-      - MONGODB_UPLOAD_BUCKET=uploads
-    depends_on:
-      - mongodb
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
-    command: npm run dev -- -H 0.0.0.0 -p 3000
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     target: dev
+  #   container_name: literakids-web
+  #   restart: "no"
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - NODE_ENV=development
+  #     - CHOKIDAR_USEPOLLING=true
+  #     - WATCHPACK_POLLING=true
+  #     - MONGODB_URI=mongodb://mongodb:27017/literakids
+  #     - MONGODB_UPLOAD_BUCKET=uploads
+  #   depends_on:
+  #     - mongodb
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #     - /app/.next
+  #   command: npm run dev -- -H 0.0.0.0 -p 3000
 
   mongodb:
     image: mongo:7

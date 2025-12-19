@@ -12,6 +12,14 @@ RUN npm config set fetch-retry-maxtimeout 600000 \
        elif [ -f yarn.lock ]; then yarn --frozen-lockfile; \
        else npm install --legacy-peer-deps; fi
 
+# Development stage
+FROM node:20-alpine AS dev
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NODE_ENV=development
+CMD ["npm", "run", "dev"]
+
 # Build stage
 FROM node:20-alpine AS build
 WORKDIR /app

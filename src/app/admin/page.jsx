@@ -45,22 +45,8 @@ export default function AdminPage() {
                   <h1 className="text-2xl font-bold text-gray-800">Halo, Admin!</h1>
                   <p className="text-gray-600 mt-1">Pantau siswa, kelola cerita, dan lihat cerita terfavorit.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button className="px-4 py-2 rounded-full bg-gradient-to-r from-green-400 to-teal-500 text-white text-sm shadow-lg">
-                    Simpan Perubahan
-                  </button>
-                  <button className="px-4 py-2 rounded-full bg-white border border-gray-200 text-sm text-gray-700 shadow-sm">
-                    Preview
-                  </button>
-                </div>
               </div>
-              <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3">
-                <Search className="w-4 h-4 text-gray-400" />
-                <input
-                  className="w-full bg-transparent outline-none text-sm"
-                  placeholder="Cari siswa atau cerita..."
-                />
-              </div>
+             
             </header>
 
             <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

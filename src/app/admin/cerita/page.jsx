@@ -1,92 +1,280 @@
 ﻿'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   Edit3,
   FileText,
   Headphones,
   Image as ImageIcon,
-  Layers,
-  Plus,
   Search,
   Trash2,
-  Upload,
   ArrowLeft,
-  Save,
-  X,
-  CheckCircle2
+  Save
 } from 'lucide-react';
 
-const initialStories = [
-  {
-    id: 1,
-    title: 'Petualangan Sungai Pelangi',
-    category: 'Bermasyarakat',
-    likes: 342,
-    reads: 1280,
-    completion: 94,
-    cover: '/assets/dashboard-hero-mobile.png',
-    pages: 12,
-    audio: 12,
-    images: 12,
-    status: 'Published',
-  },
-  {
-    id: 2,
-    title: 'Menjaga Kebersihan Sekolah',
-    category: 'Beribadah',
-    likes: 298,
-    reads: 1043,
-    completion: 89,
-    cover: '/assets/bermasyarakat-hero-mobile.png',
-    pages: 8,
-    audio: 8,
-    images: 7,
-    status: 'Draft',
-  },
-  {
-    id: 3,
-    title: 'Kebun Sayur Ceria',
-    category: 'Makan Bergizi',
-    likes: 251,
-    reads: 910,
-    completion: 87,
-    cover: '/assets/dashboard-hero-desktop.png',
-    pages: 10,
-    audio: 10,
-    images: 10,
-    status: 'Published',
-  },
-];
+
 
 export default function AdminCeritaPage() {
   const [view, setView] = useState('list'); // 'list', 'form'
   const [isEditing, setIsEditing] = useState(false);
-  const [stories, setStories] = useState(initialStories);
+  const [stories, setStories] = useState([]);
   const [formData, setFormData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const [uploadError, setUploadError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStories = async () => {
+      setIsLoading(true);
+      setLoadError('');
+      try {
+        const response = await fetch('/api/cerita');
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload?.error || 'Gagal memuat data cerita.');
+        }
+        const payload = await response.json();
+        if (isMounted) {
+          setStories(Array.isArray(payload?.data) ? payload.data : []);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLoadError(error.message);
+          setStories([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchStories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const displayStories = useMemo(
+    () =>
+      stories.map((story) => {
+        const halaman = Array.isArray(story.halaman) ? story.halaman : [];
+        const totalImages = halaman.filter((page) => page?.gambarUrl).length;
+        const totalAudio = halaman.filter((page) => page?.audioUrl).length;
+        return {
+          id: story._id,
+          title: story.judul,
+          category: story.kategori || 'Umum',
+          status: story.status || 'Draft',
+          cover: story.coverUrl || '',
+          pages: halaman.length,
+          images: totalImages,
+          audio: totalAudio,
+        };
+      }),
+    [stories]
+  );
 
   const handleCreate = () => {
     setIsEditing(false);
     setFormData({
-      title: '',
-      category: 'Bermasyarakat',
+      judul: '',
+      kategori: 'Bermasyarakat',
       status: 'Draft',
-      pages: 0,
-      cover: ''
+      coverUrl: '',
+      halaman: [
+        {
+          gambarUrl: '',
+          teks: '',
+          audioUrl: '',
+        },
+      ],
     });
     setView('form');
   };
 
   const handleEdit = (story) => {
     setIsEditing(true);
-    setFormData(story);
+    const target = stories.find((item) => item._id === story.id) || story;
+    setFormData({
+      id: target._id || story.id,
+      judul: target.judul || story.title || '',
+      kategori: target.kategori || story.category || 'Bermasyarakat',
+      status: target.status || story.status || 'Draft',
+      coverUrl: target.coverUrl || story.cover || '',
+      halaman:
+        Array.isArray(target.halaman) && target.halaman.length > 0
+          ? target.halaman
+          : [
+              {
+                gambarUrl: '',
+                teks: '',
+                audioUrl: '',
+              },
+            ],
+    });
     setView('form');
   };
 
   const handleBack = () => {
     setView('list');
     setFormData(null);
+    setSubmitError('');
+    setUploadError('');
+  };
+
+  const uploadFile = async (file, folder) => {
+    setUploadError('');
+    setUploadingCount((prev) => prev + 1);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      body.append('folder', folder);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body,
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error || 'Gagal upload file.');
+      }
+
+      const payload = await response.json();
+      return payload.publicUrl || payload.path || '';
+    } catch (error) {
+      setUploadError(error.message);
+      throw error;
+    } finally {
+      setUploadingCount((prev) => Math.max(0, prev - 1));
+    }
+  };
+
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCoverFile = async (file) => {
+    const url = await uploadFile(file, 'covers');
+    setFormData((prev) => ({ ...prev, coverUrl: url }));
+  };
+
+  const handleCoverChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await handleCoverFile(file);
+    event.target.value = '';
+  };
+
+  const handleCoverDrop = async (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+    await handleCoverFile(file);
+  };
+
+  const handleCoverDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  const handlePageChange = (index, field, value) => {
+    setFormData((prev) => {
+      const nextPages = [...prev.halaman];
+      nextPages[index] = { ...nextPages[index], [field]: value };
+      return { ...prev, halaman: nextPages };
+    });
+  };
+
+  const handlePageFile = async (index, field, file, folder) => {
+    const url = await uploadFile(file, folder);
+    setFormData((prev) => {
+      const nextPages = [...prev.halaman];
+      nextPages[index] = { ...nextPages[index], [field]: url };
+      return { ...prev, halaman: nextPages };
+    });
+  };
+
+  const handlePageFileChange = (index, field, folder) => async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await handlePageFile(index, field, file, folder);
+    event.target.value = '';
+  };
+
+  const handlePageDrop = (index, field, folder) => async (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+    await handlePageFile(index, field, file, folder);
+  };
+
+  const handlePageDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  const handleAddPage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      halaman: [
+        ...prev.halaman,
+        { gambarUrl: '', teks: '', audioUrl: '' },
+      ],
+    }));
+  };
+
+  const handleRemovePage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      halaman: prev.halaman.filter((_, pageIndex) => pageIndex !== index),
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitError('');
+    setIsSubmitting(true);
+
+    try {
+      const isUpdate = isEditing && formData?.id;
+      const response = await fetch(
+        isUpdate ? `/api/cerita/${formData.id}` : '/api/cerita',
+        {
+          method: isUpdate ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error || 'Gagal menyimpan cerita.');
+      }
+
+      const payload = await response.json();
+      setStories((prev) => {
+        if (isUpdate) {
+          return prev.map((item) =>
+            item._id === payload.data._id ? payload.data : item
+          );
+        }
+        return [payload.data, ...prev];
+      });
+      setView('list');
+      setFormData(null);
+    } catch (error) {
+      setSubmitError(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (view === 'form') {
@@ -103,29 +291,43 @@ export default function AdminCeritaPage() {
                 <p className="text-gray-600 text-sm">Isi detail cerita di bawah ini.</p>
               </div>
             </div>
-            <button className="px-6 py-2 rounded-full bg-gradient-to-r from-green-400 to-teal-500 text-white text-sm font-medium shadow-lg flex items-center gap-2">
+            <button
+              className="px-6 py-2 rounded-full bg-gradient-to-r from-green-400 to-teal-500 text-white text-sm font-medium shadow-lg flex items-center gap-2 disabled:opacity-70"
+              type="submit"
+              form="cerita-form"
+              disabled={isSubmitting || uploadingCount > 0}
+            >
               <Save className="w-4 h-4" />
-              Simpan
+              {isSubmitting ? 'Menyimpan...' : uploadingCount > 0 ? 'Mengupload...' : 'Simpan'}
             </button>
          </header>
 
          {/* Form Content */}
-         <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-8">
+         <form
+           id="cerita-form"
+           className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-8"
+           onSubmit={handleSubmit}
+         >
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Judul Cerita</label>
                   <input 
                     type="text" 
-                    defaultValue={formData?.title}
+                    name="judul"
+                    value={formData?.judul || ''}
+                    onChange={handleFormChange}
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-green-400 outline-none bg-white/50"
                     placeholder="Masukkan judul cerita..."
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
                   <select 
-                    defaultValue={formData?.category}
+                    name="kategori"
+                    value={formData?.kategori || 'Bermasyarakat'}
+                    onChange={handleFormChange}
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-green-400 outline-none bg-white/50"
                   >
                     <option>Bermasyarakat</option>
@@ -136,7 +338,9 @@ export default function AdminCeritaPage() {
                  <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                   <select 
-                    defaultValue={formData?.status}
+                    name="status"
+                    value={formData?.status || 'Draft'}
+                    onChange={handleFormChange}
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-green-400 outline-none bg-white/50"
                   >
                     <option>Published</option>
@@ -147,31 +351,128 @@ export default function AdminCeritaPage() {
               
               <div className="space-y-4">
                  <label className="block text-sm font-medium text-gray-700 mb-1">Cover Cerita</label>
-                 <div className="border-2 border-dashed border-gray-300 rounded-2xl h-64 flex flex-col items-center justify-center text-gray-400 hover:bg-gray-50 transition-colors cursor-pointer relative overflow-hidden">
-                    {formData?.cover ? (
-                        <img src={formData.cover} alt="Cover" className="w-full h-full object-cover" />
+                 <label
+                   className="border-2 border-dashed border-gray-300 rounded-2xl h-64 flex flex-col items-center justify-center text-gray-400 hover:bg-gray-50 transition-colors cursor-pointer relative overflow-hidden"
+                   onDragOver={handleCoverDragOver}
+                   onDrop={handleCoverDrop}
+                 >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={handleCoverChange}
+                    />
+                    {formData?.coverUrl ? (
+                        <img src={formData.coverUrl} alt="Cover" className="w-full h-full object-cover" />
                     ) : (
                         <>
                             <ImageIcon className="w-12 h-12 mb-2" />
-                            <span className="text-sm">Klik untuk upload cover</span>
+                            <span className="text-sm">Klik atau drag & drop untuk upload cover</span>
                         </>
                     )}
-                 </div>
+                 </label>
+                 {formData?.coverUrl && (
+                   <p className="text-xs text-gray-500 break-all">{formData.coverUrl}</p>
+                 )}
               </div>
             </div>
             
-            {/* Page Structure Mockup */}
             <div className="mt-8 pt-8 border-t border-gray-100">
                <h3 className="text-lg font-bold text-gray-800 mb-4">Struktur Halaman</h3>
-               <div className="bg-gray-50 rounded-2xl p-6 text-center text-gray-500 border border-gray-200 border-dashed">
-                  <Layers className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p>Konten halaman (Teks, Audio, Gambar) akan dikelola di sini.</p>
-                  <button className="mt-4 px-4 py-2 rounded-full bg-white border border-gray-200 text-sm text-blue-600 shadow-sm hover:bg-gray-50">
+               <div className="space-y-4">
+                  {formData?.halaman?.map((page, index) => (
+                    <div
+                      key={`page-${index}`}
+                      className="bg-gray-50 rounded-2xl p-5 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-sm font-semibold text-gray-700">Halaman {index + 1}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePage(index)}
+                          className="text-xs text-red-500 hover:text-red-600"
+                          disabled={formData?.halaman?.length === 1}
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        <div
+                          className="border border-dashed border-gray-300 rounded-xl p-4 bg-white/70"
+                          onDragOver={handlePageDragOver}
+                          onDrop={handlePageDrop(index, 'gambarUrl', 'halaman')}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white border border-gray-200 text-sm text-blue-600 shadow-sm hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="sr-only"
+                                onChange={handlePageFileChange(index, 'gambarUrl', 'halaman')}
+                              />
+                              Upload gambar
+                            </label>
+                            {page.gambarUrl ? (
+                              <span className="text-xs text-gray-500">Gambar tersimpan</span>
+                            ) : (
+                              <span className="text-xs text-gray-400">Klik atau drop gambar</span>
+                            )}
+                          </div>
+                          {page.gambarUrl && (
+                            <p className="mt-2 text-xs text-gray-500 break-all">{page.gambarUrl}</p>
+                          )}
+                        </div>
+                        <textarea
+                          value={page.teks}
+                          onChange={(event) => handlePageChange(index, 'teks', event.target.value)}
+                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-green-400 outline-none bg-white/70 min-h-[110px]"
+                          placeholder="Teks cerita..."
+                          required
+                        />
+                        <div className="border border-dashed border-gray-300 rounded-xl p-4 bg-white/70">
+                          <div className="flex items-center justify-between gap-3">
+                            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white border border-gray-200 text-sm text-blue-600 shadow-sm hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="file"
+                                accept="audio/*"
+                                className="sr-only"
+                                onChange={handlePageFileChange(index, 'audioUrl', 'audio')}
+                              />
+                              Upload audio
+                            </label>
+                            {page.audioUrl ? (
+                              <span className="text-xs text-gray-500">Audio tersimpan</span>
+                            ) : (
+                              <span className="text-xs text-gray-400">Pilih file mp3</span>
+                            )}
+                          </div>
+                          {page.audioUrl && (
+                            <p className="mt-2 text-xs text-gray-500 break-all">{page.audioUrl}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleAddPage}
+                    className="px-4 py-2 rounded-full bg-white border border-gray-200 text-sm text-blue-600 shadow-sm hover:bg-gray-50"
+                  >
                     + Tambah Halaman
                   </button>
                </div>
             </div>
-         </div>
+            {uploadError && (
+              <div className="mt-6 text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl px-4 py-2">
+                {uploadError}
+              </div>
+            )}
+            {submitError && (
+              <div className="mt-6 text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl px-4 py-2">
+                {submitError}
+              </div>
+            )}
+         </form>
       </div>
     );
   }
@@ -210,14 +511,31 @@ export default function AdminCeritaPage() {
                 </div>
              </div>
           </div>
+          {loadError && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl px-4 py-2">
+              {loadError}
+            </div>
+          )}
           <div className="grid md:grid-cols-3 gap-4">
-            {stories.map((story) => (
+            {isLoading && (
+              <div className="col-span-full text-sm text-gray-500">Memuat data cerita...</div>
+            )}
+            {!isLoading && displayStories.length === 0 && !loadError && (
+              <div className="col-span-full text-sm text-gray-500">Belum ada cerita.</div>
+            )}
+            {displayStories.map((story) => (
               <div
                 key={story.id}
                 className="rounded-3xl border border-gray-100 bg-white overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
               >
                 <div className="h-36 bg-gray-100 relative group">
-                  <img src={story.cover} alt={story.title} className="w-full h-full object-cover" />
+                  {story.cover ? (
+                    <img src={story.cover} alt={story.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                      Tidak ada cover
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                      <button 
                         onClick={() => handleEdit(story)}
@@ -269,7 +587,3 @@ export default function AdminCeritaPage() {
     </div>
   );
 }
-
-
-
-

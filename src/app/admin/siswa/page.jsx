@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Edit3,
   Plus,
@@ -9,14 +10,59 @@ import {
   Users,
 } from 'lucide-react';
 
-const students = [
-  { id: 1, nis: '2024001', name: 'Alya Putri', kelas: '4A', progress: '18 cerita', status: 'Aktif' },
-  { id: 2, nis: '2024002', name: 'Rafi Nugraha', kelas: '5B', progress: '22 cerita', status: 'Aktif' },
-  { id: 3, nis: '2024003', name: 'Salsa Rahma', kelas: '3C', progress: '12 cerita', status: 'Tidak aktif' },
-  { id: 4, nis: '2024004', name: 'Bagas Pratama', kelas: '2A', progress: '9 cerita', status: 'Aktif' },
-];
-
 export default function AdminSiswaPage() {
+  const [students, setStudents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStudents = async () => {
+      setIsLoading(true);
+      setLoadError('');
+      try {
+        const response = await fetch('/api/siswa');
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload?.error || 'Gagal memuat data siswa.');
+        }
+        const payload = await response.json();
+        if (isMounted) {
+          setStudents(Array.isArray(payload?.data) ? payload.data : []);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLoadError(error.message);
+          setStudents([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchStudents();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const displayStudents = useMemo(
+    () =>
+      students.map((student) => ({
+        id: student._id,
+        nisn: student.nisn,
+        name: student.nama,
+        kelas: student.kelas,
+        progress: `${student.jumlahCeritaDibaca ?? 0} cerita`,
+        status: 'Aktif',
+      })),
+    [students]
+  );
+
   return (
     <div className="space-y-6">
       <header className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl p-6 flex flex-col gap-4">
@@ -51,6 +97,12 @@ export default function AdminSiswaPage() {
           </div>
         </div>
 
+        {loadError && (
+          <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl px-4 py-2">
+            {loadError}
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-gray-500 uppercase bg-gray-50/50 border-b border-gray-100">
@@ -63,11 +115,25 @@ export default function AdminSiswaPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {students.map((student) => (
+              {isLoading && (
+                <tr>
+                  <td className="px-4 py-6 text-center text-sm text-gray-500" colSpan={5}>
+                    Memuat data siswa...
+                  </td>
+                </tr>
+              )}
+              {!isLoading && displayStudents.length === 0 && !loadError && (
+                <tr>
+                  <td className="px-4 py-6 text-center text-sm text-gray-500" colSpan={5}>
+                    Belum ada siswa terdaftar.
+                  </td>
+                </tr>
+              )}
+              {displayStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="font-medium text-gray-800">{student.name}</div>
-                    <div className="text-xs text-gray-500">NIS: {student.nis}</div>
+                    <div className="text-xs text-gray-500">NISN: {student.nisn}</div>
                   </td>
                   <td className="px-4 py-3 text-gray-600">{student.kelas}</td>
                   <td className="px-4 py-3 text-gray-600">{student.progress}</td>
