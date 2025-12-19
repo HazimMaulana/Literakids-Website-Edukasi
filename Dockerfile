@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 # Install production dependencies separately to leverage caching
 FROM node:20-alpine AS deps
 WORKDIR /app
@@ -20,17 +18,10 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Provide defaults so Prisma generate can run during image build
-ARG DATABASE_URL="postgresql://user:password@localhost:5432/mydb?schema=public"
-ARG DIRECT_URL=${DATABASE_URL}
-ENV DATABASE_URL=${DATABASE_URL}
-ENV DIRECT_URL=${DIRECT_URL}
 # Ensure env exists at build time if needed by Next
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 RUN apk add --no-cache openssl libc6-compat
-# Generate Prisma Client before building (used in server components)
-RUN npx prisma generate
 # Skip ESLint during container build to avoid missing TypeScript parser
 ENV NEXT_DISABLE_ESLINT=1
 # Build app (support classic and turbopack scripts)
@@ -47,11 +38,8 @@ COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/package-lock.json ./package-lock.json
 COPY --from=build /app/next.config.mjs ./next.config.mjs
-# Copy generated Prisma Client (required because of custom output path)
-COPY --from=build /app/app/generated/prisma ./app/generated/prisma
 
 # Install production deps only
-# Added --ignore-scripts to prevent postinstall (prisma generate) failure since prisma CLI is dev dep
 RUN if [ -f package-lock.json ]; then npm ci --omit=dev --ignore-scripts; else npm i --omit=dev --ignore-scripts; fi
 EXPOSE 3000
 CMD ["npm", "start"]

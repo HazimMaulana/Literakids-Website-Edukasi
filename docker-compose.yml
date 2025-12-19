@@ -1,161 +1,38 @@
 services:
-  # web:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: literakids-web
-  #   restart: "no"
-  #   ports:
-  #     - "3000:3000"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - NODE_ENV=development
-  #     - CHOKIDAR_USEPOLLING=true
-  #     - WATCHPACK_POLLING=true
-  #   volumes:
-  #     - .:/app
-  #     - /app/node_modules
-  #     - /app/.next
-  #   command: npm run dev -- -H 0.0.0.0 -p 3000
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: literakids-web
+    restart: "no"
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - MONGODB_URI=mongodb://mongodb:27017/literakids
+      - MONGODB_UPLOAD_BUCKET=uploads
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev -- -H 0.0.0.0 -p 3000
 
-  supabase-db:
-    image: supabase/postgres:15.1.0.152
-    container_name: supabase-db
+  mongodb:
+    image: mongo:7
+    container_name: literakids-mongodb
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "27017:27017"
     environment:
-      POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD:-supabase}
-      POSTGRES_USER: ${SUPABASE_DB_USER:-supabase}
-      POSTGRES_DB: ${SUPABASE_DB_NAME:-postgres}
-      PGPASSWORD: ${SUPABASE_DB_PASSWORD:-supabase}
-      JWT_SECRET: ${SUPABASE_JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters}
-      ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJpc3MiOiJzdXBhYmFzZS1sb2NhbCIsImlhdCI6MTc2NjAzMDM3OCwiZXhwIjoyMDgxMzkwMzc4fQ.K02RNP4hCdC1yAPxKZxaoBRj2CPqtZMDn_bp6mSTYBo}
-      SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImlzcyI6InN1cGFiYXNlLWxvY2FsIiwiaWF0IjoxNzY2MDMwMzc4LCJleHAiOjIwODEzOTAzNzh9.4t7yR30asksAw5SftxWBbew-Pq5-Lcvd-qzfyn0RLos}
+      MONGO_INITDB_DATABASE: literakids
     volumes:
-      - supabase-db-data:/var/lib/postgresql/data
-
-  supabase-rest:
-    image: postgrest/postgrest:v11.1.0
-    container_name: supabase-rest
-    restart: unless-stopped
-    depends_on:
-      - supabase-db
-    environment:
-      PGRST_DB_URI: postgres://${SUPABASE_DB_USER:-supabase}:${SUPABASE_DB_PASSWORD:-supabase}@supabase-db:5432/${SUPABASE_DB_NAME:-postgres}
-      PGRST_DB_SCHEMA: public
-      PGRST_DB_ANON_ROLE: anon
-      PGRST_DB_POOL: 10
-      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters}
-
-  supabase-auth:
-    image: supabase/gotrue:v2.153.2
-    container_name: supabase-auth
-    restart: unless-stopped
-    depends_on:
-      - supabase-db
-    environment:
-      GOTRUE_SITE_URL: ${SUPABASE_SITE_URL:-http://localhost:3000}
-      API_EXTERNAL_URL: ${SUPABASE_API_URL:-http://localhost:9999}
-      GOTRUE_API_HOST: 0.0.0.0
-      GOTRUE_API_PORT: 9999
-      DB_NAMESPACE: auth
-      DB_DRIVER: postgres
-      DATABASE_URL: postgres://${SUPABASE_DB_USER:-supabase}:${SUPABASE_DB_PASSWORD:-supabase}@supabase-db:5432/${SUPABASE_DB_NAME:-postgres}
-      JWT_SECRET: ${SUPABASE_JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters}
-      JWT_EXP: 3600
-      GOTRUE_SMTP_ADMIN_EMAIL: ${SUPABASE_SMTP_ADMIN_EMAIL:-admin@example.com}
-      GOTRUE_SMTP_HOST: ${SUPABASE_SMTP_HOST:-smtp.example.com}
-      GOTRUE_SMTP_PORT: ${SUPABASE_SMTP_PORT:-587}
-      GOTRUE_SMTP_USER: ${SUPABASE_SMTP_USER:-user}
-      GOTRUE_SMTP_PASS: ${SUPABASE_SMTP_PASS:-password}
-      GOTRUE_SMTP_MAX_FREQUENCY: 1
-      GOTRUE_MAILER_AUTOCONFIRM: ${SUPABASE_MAIL_AUTOCONFIRM:-true}
-      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
-
-  supabase-realtime:
-    image: supabase/realtime:v2.27.4
-    container_name: supabase-realtime
-    restart: unless-stopped
-    depends_on:
-      - supabase-db
-    environment:
-      DB_HOST: supabase-db
-      DB_PORT: 5432
-      DB_NAME: ${SUPABASE_DB_NAME:-postgres}
-      DB_USER: ${SUPABASE_DB_USER:-supabase}
-      DB_PASSWORD: ${SUPABASE_DB_PASSWORD:-supabase}
-      DB_SSL: "false"
-      PORT: 4000
-      REALTIME_JWT_SECRET: ${SUPABASE_JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters}
-
-  supabase-storage:
-    image: supabase/storage-api:v0.48.4
-    container_name: supabase-storage
-    restart: unless-stopped
-    depends_on:
-      - supabase-db
-    environment:
-      ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJpc3MiOiJzdXBhYmFzZS1sb2NhbCIsImlhdCI6MTc2NjAzMDM3OCwiZXhwIjoyMDgxMzkwMzc4fQ.K02RNP4hCdC1yAPxKZxaoBRj2CPqtZMDn_bp6mSTYBo}
-      SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImlzcyI6InN1cGFiYXNlLWxvY2FsIiwiaWF0IjoxNzY2MDMwMzc4LCJleHAiOjIwODEzOTAzNzh9.4t7yR30asksAw5SftxWBbew-Pq5-Lcvd-qzfyn0RLos}
-      POSTGREST_URL: http://supabase-rest:3000
-      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters}
-      DATABASE_URL: postgres://${SUPABASE_DB_USER:-supabase}:${SUPABASE_DB_PASSWORD:-supabase}@supabase-db:5432/${SUPABASE_DB_NAME:-postgres}
-      FILE_SIZE_LIMIT: 52428800
-      STORAGE_S3_REGION: local
-      STORAGE_BACKEND: file
-      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
-    volumes:
-      - supabase-storage-data:/var/lib/storage
-
-  supabase-studio:
-    image: supabase/studio:20241216-66bda66
-    container_name: supabase-studio
-    restart: unless-stopped
-    depends_on:
-      - supabase-db
-      - supabase-rest
-      - supabase-auth
-      - supabase-storage
-    ports:
-      - "54323:3000"
-    environment:
-      STUDIO_PGRST_URL: http://supabase-rest:3000
-      STUDIO_AUTH_URL: http://localhost:9999
-      SUPABASE_URL: http://localhost:8000
-      SUPABASE_REST_URL: http://localhost:8000/rest/v1
-      SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJpc3MiOiJzdXBhYmFzZS1sb2NhbCIsImlhdCI6MTc2NjAzMDM3OCwiZXhwIjoyMDgxMzkwMzc4fQ.K02RNP4hCdC1yAPxKZxaoBRj2CPqtZMDn_bp6mSTYBo}
-      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImlzcyI6InN1cGFiYXNlLWxvY2FsIiwiaWF0IjoxNzY2MDMwMzc4LCJleHAiOjIwODEzOTAzNzh9.4t7yR30asksAw5SftxWBbew-Pq5-Lcvd-qzfyn0RLos}
-      STUDIO_DEFAULT_ORGANIZATION: Literakids
-      STUDIO_DEFAULT_PROJECT: literakids-local
-
-  supabase-kong:
-    image: supabase/kong:3.4.3
-    container_name: supabase-kong
-    restart: unless-stopped
-    depends_on:
-      - supabase-auth
-      - supabase-rest
-      - supabase-realtime
-      - supabase-storage
-    ports:
-      - "8000:8000"
-      - "8443:8443"
-      - "8001:8001"
-    environment:
-      KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
-      KONG_PROXY_ACCESS_LOG: /dev/stdout
-      KONG_ADMIN_ACCESS_LOG: /dev/stdout
-      KONG_PROXY_ERROR_LOG: /dev/stderr
-      KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_DNS_ORDER: LAST,A,CNAME
-      SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9}
-      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-super-secret-service-role-key}
-    volumes:
-      - ./supabase-config/kong.yml:/var/lib/kong/kong.yml:ro
+      - mongodb-data:/data/db
 
 volumes:
-  supabase-db-data:
-  supabase-storage-data:
+  mongodb-data:

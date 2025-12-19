@@ -1,9 +1,5 @@
 'use client'
 
-import { supabase } from '../supabase/supabase'
-
-const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'images'
-
 export async function uploadImage(file, folder = 'uploads') {
   if (!file) {
     throw new Error('No file provided')
@@ -26,8 +22,7 @@ export async function uploadImage(file, folder = 'uploads') {
   return payload
 }
 
-export function getPublicImageUrl(path) {
-  if (!path) return null
-  const { data } = supabase.storage.from(bucketName).getPublicUrl(path)
-  return data?.publicUrl || null
+export function getPublicImageUrl(id) {
+  if (!id) return null
+  return `/api/upload/${id}`
 }

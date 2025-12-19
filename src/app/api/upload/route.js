@@ -1,31 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { Readable } from 'stream'
+import mongoose from 'mongoose'
+import { connectToDatabase } from '@/lib/mongoose'
 
 export const runtime = 'nodejs'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'images'
-
-if (!supabaseUrl || !serviceRoleKey) {
-  throw new Error('Supabase URL or service role key missing in environment variables')
-}
-
-const supabase = createClient(supabaseUrl, serviceRoleKey)
-
-async function ensureBucketExists() {
-  const { data, error } = await supabase.storage.getBucket(bucketName)
-  if (data) return
-  if (error && !/not\s+found/i.test(error.message)) {
-    throw error
-  }
-  const { error: createError } = await supabase.storage.createBucket(bucketName, {
-    public: true,
-  })
-  if (createError && !/already exists/i.test(createError.message)) {
-    throw createError
-  }
-}
+const bucketName = process.env.MONGODB_UPLOAD_BUCKET || 'uploads'
 
 export async function POST(request) {
   const formData = await request.formData()
@@ -36,29 +16,31 @@ export async function POST(request) {
     return NextResponse.json({ error: 'File is required' }, { status: 400 })
   }
 
-  await ensureBucketExists()
+  await connectToDatabase()
+  const db = mongoose.connection.db
+  if (!db) {
+    return NextResponse.json({ error: 'Database connection not ready' }, { status: 500 })
+  }
 
+  const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName })
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
   const extension = file.name?.split('.').pop() || 'bin'
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`
   const filePath = `${folder}/${fileName}`
 
-  const { data, error } = await supabase.storage
-    .from(bucketName)
-    .upload(filePath, buffer, {
-      contentType: file.type || 'application/octet-stream',
-      upsert: false,
-    })
+  const uploadStream = bucket.openUploadStream(filePath, {
+    contentType: file.type || 'application/octet-stream',
+  })
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(data?.path || filePath)
+  const readable = Readable.from(buffer)
+  await new Promise((resolve, reject) => {
+    readable.pipe(uploadStream).on('finish', resolve).on('error', reject)
+  })
 
   return NextResponse.json({
-    path: data?.path || filePath,
-    publicUrl: publicUrlData?.publicUrl,
+    path: filePath,
+    id: uploadStream.id?.toString(),
+    publicUrl: `/api/upload/${uploadStream.id}`,
   })
 }
