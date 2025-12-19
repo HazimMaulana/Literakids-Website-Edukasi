@@ -1,6 +1,25 @@
+'use client';
+
 import { useState } from 'react';
-import { Dashboard } from '../../components/Dashboard';
 import { KeyRound, User } from 'lucide-react';
+
+function Dashboard({ userName, onLogout }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50 flex flex-col items-center justify-center">
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/60 p-8 text-center space-y-4 max-w-lg w-full mx-4">
+        <p className="text-sm text-gray-500">Dashboard</p>
+        <h1 className="text-3xl font-bold text-gray-800">Halo, {userName || 'Teman'}!</h1>
+        <p className="text-gray-600">Kamu sudah masuk. Gunakan navigasi utama untuk mulai membaca cerita.</p>
+        <button
+          onClick={onLogout}
+          className="px-5 py-3 rounded-xl bg-gradient-to-r from-green-500 to-teal-600 text-white font-semibold shadow-md"
+        >
+          Keluar
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -36,7 +55,7 @@ export default function LoginPage() {
         />
         {/* Desktop Background */}
         <img 
-          src="/webContoh/7f07e636261cc6d50c15e379e66d89b2eb464776.png"
+          src="/backgroundImages/loginPageLandscape.png"
           alt="Background Desktop"
           className="hidden md:block w-full h-full object-cover"
         />
@@ -44,26 +63,23 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md p-4">
-        <div className="bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border-4 border-white/50 relative overflow-hidden">
+      <div className="relative z-10 w-full max-w-md p-4 text-white">
+        <div className="bg-gray/40 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border-4 border-white/50 relative overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-yellow-300 rounded-full opacity-50 blur-xl"></div>
         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-300 rounded-full opacity-50 blur-xl"></div>
         
-        <div className="relative z-10">
+        <div className="relative z-10 ">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-blue-500 rounded-full mx-auto flex items-center justify-center mb-4 shadow-lg animate-bounce">
-              <span className="text-4xl">📚</span>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Selamat Datang!</h1>
-            <p className="text-gray-600">Masuk untuk mulai membaca cerita seru</p>
+            <h1 className="text-3xl font-bold mb-2 text-white">Selamat Datang!</h1>
+            <p className="text-white">Masuk untuk mulai membaca cerita seru</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 ml-1">Nama Pengguna</label>
+              <label className="text-sm font-semibold text-white ml-1">Nama Pengguna</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white w-5 h-5" />
                 <input
                   type="text"
                   value={username}
@@ -76,9 +92,9 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 ml-1">Kata Sandi</label>
+              <label className="text-sm font-semibold text-white ml-1">Kata Sandi</label>
               <div className="relative">
-                <KeyRound className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <KeyRound className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white w-5 h-5" />
                 <input
                   type="password"
                   value={password}
@@ -99,8 +115,8 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
-              Belum punya akun? <a href="#" className="text-green-600 font-semibold hover:underline">Daftar disini</a>
+            <p className="text-sm text-white">
+              Belum punya akun? <a href="#" className="text-white font-semibold hover:underline">Daftar disini</a>
             </p>
           </div>
         </div>

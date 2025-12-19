@@ -11,7 +11,7 @@ export function StoryCard({ story }) {
   return (
     <Link href={`/cerita/${story.id}`} className="block">
       <div
-        className="group relative bg-white/40 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer text-left border border-white/50 hover:border-green-300/70 h-full"
+        className="group relative bg-white backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer text-left border border-white/50 hover:border-green-300/70 h-full"
       >
         {/* Image */}
         <div className="relative h-48 overflow-hidden">

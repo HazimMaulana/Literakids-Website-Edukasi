@@ -8,7 +8,7 @@ export default function Home({ userName = "Teman", onLogout }) {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50">
+    <div className="min-h-screen bg-blue-100">
       <Navbar onLogout={onLogout} />
 
       {/* Hero Section - Full Width with Background Image */}
@@ -28,7 +28,7 @@ export default function Home({ userName = "Teman", onLogout }) {
             className="hidden md:block w-full h-full object-cover"
           />
           {/* Dim overlay for better text contrast */}
-          <div className="absolute inset-0 bg-black/35 md:bg-black/40"></div>
+          <div className="absolute inset-0 bg-black/40"></div>
         </div>
         
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
