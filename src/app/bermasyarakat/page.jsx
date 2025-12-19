@@ -90,10 +90,10 @@ export default function BermasyarakatPage() {
         </div>
         
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
-          <div className="relative z-10 py-8 md:py-12 flex justify-center md:justify-end">
+          <div className="relative z-10 py-8 md:py-12 flex justify-center md:justify-start">
             {/* Content - Text Only without background */}
-            <div className="max-w-4xl mx-auto md:mx-0 text-center md:text-right font-dynapuff">
-              <div className="flex items-center justify-center md:justify-end gap-3 mb-6">
+            <div className="max-w-4xl mx-auto md:mx-0 text-center md:text-left font-dynapuff">
+              <div className="flex items-center justify-center md:justify-starta gap-3 mb-6">
                 <h1 className="text-white font-dynapuff font-bold text-4xl md:text-5xl drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">Bermasyarakat</h1>
               </div>
               <p className="text-2xl md:text-2xl text-white font-bold mb-8 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] leading-relaxed">
