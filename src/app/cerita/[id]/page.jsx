@@ -1,18 +1,90 @@
-import { allStories } from '../../../lib/stories';
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { ArrowLeft, Clock, Sparkles } from 'lucide-react';
 import { StoryReader } from '../../../components/StoryReader';
 import { Navbar } from '../../../components/Navbar';
-import Link from 'next/link';
-import { ArrowLeft, Clock, Sparkles } from 'lucide-react';
+import { allStories } from '../../../lib/stories';
+import { mapCeritaToStory } from '../../../lib/ceritaMapper';
 
-export default async function StoryPage({ params }) {
-  const { id } = await params;
-  const story = allStories.find(s => s.id === parseInt(id));
+export default function StoryPage() {
+  const params = useParams();
+  const id = params?.id;
+  const [story, setStory] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    if (!id) return;
+    let isMounted = true;
+
+    const isObjectId = typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id);
+    if (!isObjectId) {
+      const numericId = Number.parseInt(id, 10);
+      const localStory = allStories.find((item) => item.id === numericId);
+      if (isMounted) {
+        setStory(localStory || null);
+        setIsLoading(false);
+        setLoadError(localStory ? '' : 'Cerita tidak ditemukan.');
+      }
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const fetchStory = async () => {
+      setIsLoading(true);
+      setLoadError('');
+      try {
+        const response = await fetch(`/api/cerita/${id}`);
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload?.error || 'Cerita tidak ditemukan.');
+        }
+        const payload = await response.json();
+        if (payload?.data?.status && payload.data.status !== 'Published') {
+          throw new Error('Cerita belum dipublikasikan.');
+        }
+        const mapped = mapCeritaToStory(payload?.data);
+        if (isMounted) {
+          setStory(mapped);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLoadError(error.message);
+          setStory(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchStory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center text-gray-500">Memuat cerita...</div>
+      </div>
+    );
+  }
 
   if (!story) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Cerita tidak ditemukan 😢</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            {loadError || 'Cerita tidak ditemukan'}
+          </h1>
           <Link href="/" className="text-blue-500 hover:underline">
             Kembali ke Beranda
           </Link>
@@ -26,7 +98,6 @@ export default async function StoryPage({ params }) {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 py-24 md:py-32">
-        {/* Back Button */}
         <Link 
           href="/" 
           className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-8 transition-colors font-bold bg-white/50 px-4 py-2 rounded-full backdrop-blur-sm"
@@ -36,7 +107,6 @@ export default async function StoryPage({ params }) {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Story Info Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-white/50 sticky top-24">
               <div className="aspect-square rounded-2xl overflow-hidden mb-6 relative shadow-lg">
@@ -78,10 +148,9 @@ export default async function StoryPage({ params }) {
             </div>
           </div>
 
-          {/* Story Reader Area */}
           <div className="lg:col-span-2">
             <StoryReader 
-              pages={story.content || [{ text: story.description, image: story.imageUrl }]} 
+              pages={story.content} 
               title={story.title} 
             />
           </div>

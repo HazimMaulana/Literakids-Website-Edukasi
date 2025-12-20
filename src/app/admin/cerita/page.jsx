@@ -149,7 +149,7 @@ export default function AdminCeritaPage() {
       }
 
       const payload = await response.json();
-      return payload.publicUrl || payload.path || '';
+      return payload.publicUrl || payload.url || payload.path || '';
     } catch (error) {
       setUploadError(error.message);
       throw error;

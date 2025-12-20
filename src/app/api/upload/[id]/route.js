@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 const bucketName = process.env.MONGODB_UPLOAD_BUCKET || 'uploads'
 
 export async function GET(request, { params }) {
-  const { id } = params
+  const { id } = await params
   if (!id || !mongoose.isValidObjectId(id)) {
     return NextResponse.json({ error: 'Invalid file id' }, { status: 400 })
   }

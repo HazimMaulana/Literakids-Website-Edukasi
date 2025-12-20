@@ -7,8 +7,34 @@ export const runtime = 'nodejs';
 
 const normalizeText = (value) => (typeof value === 'string' ? value.trim() : '');
 
+export async function GET(request, { params }) {
+  const { id } = await params;
+
+  if (!id || !mongoose.isValidObjectId(id)) {
+    return NextResponse.json({ error: 'ID cerita tidak valid.' }, { status: 400 });
+  }
+
+  await connectToDatabase();
+
+  try {
+    const cerita = await Cerita.findById(id).lean();
+    if (!cerita) {
+      return NextResponse.json(
+        { error: 'Cerita tidak ditemukan.' },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ data: cerita });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Gagal memuat cerita.' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(request, { params }) {
-  const { id } = params || {};
+  const { id } = await params;
 
   if (!id || !mongoose.isValidObjectId(id)) {
     return NextResponse.json({ error: 'ID cerita tidak valid.' }, { status: 400 });

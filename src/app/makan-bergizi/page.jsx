@@ -1,70 +1,51 @@
 'use client';
 
-import { 
-  Clock,
-  BookOpen,
-  Heart,
-  Star
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Navbar } from '../../components/Navbar';
+import { StoryCard } from '../../components/StoryCard';
+import { filterCeritaByCategory, mapCeritaToCard } from '../../lib/ceritaMapper';
 
 export default function MakanBergiziPage() {
-  const stories = [
-    {
-      id: 1,
-      title: "Petualangan Sayur Si Kecil",
-      description: "Belajar tentang pentingnya makan sayur melalui petualangan seru di Taman Sayuran!",
-      imageUrl: "https://images.unsplash.com/photo-1731321967818-30ab0026712a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcnVpdHMlMjB2ZWdldGFibGVzJTIwbnV0cml0aW9ufGVufDF8fHx8MTc2NjAyMDc4Mnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      duration: "5 menit",
-      author: "Bu Siti",
-      bgColor: "from-green-400 to-emerald-500"
-    },
-    {
-      id: 2,
-      title: "Teman-Teman Buah Ajaib",
-      description: "Kenali berbagai buah-buahan dan manfaatnya untuk tubuh yang sehat!",
-      imageUrl: "https://images.unsplash.com/photo-1542822083-887a14216085?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFsdGh5JTIwZm9vZCUyMGtpZHMlMjBjb2xvcmZ1bHxlbnwxfHx8fDE3NjYwMjA3ODN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      duration: "6 menit",
-      author: "Pak Ahmad",
-      bgColor: "from-orange-400 to-red-500"
-    },
-    {
-      id: 3,
-      title: "Raja Protein dan Kerajaan Sehat",
-      description: "Kisah seru tentang protein yang membuat tubuh kita kuat dan sehat!",
-      imageUrl: "https://images.unsplash.com/photo-1734723303964-688ca25e8f08?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWxhbmNlZCUyMG1lYWwlMjBjb2xvcmZ1bHxlbnwxfHx8fDE3NjYwMjA3ODN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      duration: "7 menit",
-      author: "Bu Nur",
-      bgColor: "from-amber-400 to-orange-500"
-    },
-    {
-      id: 4,
-      title: "Sarapan Pagi Si Pintar",
-      description: "Mengapa sarapan pagi itu penting? Yuk temukan jawabannya!",
-      imageUrl: "https://images.unsplash.com/photo-1627747776910-6d7e50f57c7e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaGlsZHJlbiUyMGVhdGluZyUyMGhlYWx0aHl8ZW58MXx8fHwxNzY2MDIwNzgzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      duration: "5 menit",
-      author: "Pak Budi",
-      bgColor: "from-yellow-400 to-amber-500"
-    },
-    {
-      id: 5,
-      title: "Air Putih Si Pahlawan",
-      description: "Cerita tentang pentingnya minum air putih yang cukup setiap hari!",
-      imageUrl: "https://images.unsplash.com/photo-1542822083-887a14216085?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFsdGh5JTIwZm9vZCUyMGtpZHMlMjBjb2xvcmZ1bHxlbnwxfHx8fDE3NjYwMjA3ODN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      duration: "4 menit",
-      author: "Bu Ani",
-      bgColor: "from-blue-400 to-cyan-500"
-    },
-    {
-      id: 6,
-      title: "Makanan Sehat vs Junk Food",
-      description: "Petualangan seru memilih makanan yang baik untuk tubuh kita!",
-      imageUrl: "https://images.unsplash.com/photo-1731321967818-30ab0026712a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcnVpdHMlMjB2ZWdldGFibGVzJTIwbnV0cml0aW9ufGVufDF8fHx8MTc2NjAyMDc4Mnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      duration: "8 menit",
-      author: "Bu Siti",
-      bgColor: "from-lime-400 to-green-500"
-    }
-  ];
+  const [stories, setStories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStories = async () => {
+      setIsLoading(true);
+      setLoadError('');
+      try {
+        const response = await fetch('/api/cerita');
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload?.error || 'Gagal memuat cerita.');
+        }
+        const payload = await response.json();
+        const items = Array.isArray(payload?.data) ? payload.data : [];
+        const filtered = filterCeritaByCategory(items, 'Makan Bergizi');
+        if (isMounted) {
+          setStories(filtered.map(mapCeritaToCard));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLoadError(error.message);
+          setStories([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchStories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50">
@@ -114,58 +95,19 @@ export default function MakanBergiziPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading && (
+            <div className="col-span-full text-sm text-gray-500">Memuat cerita...</div>
+          )}
+          {!isLoading && loadError && (
+            <div className="col-span-full text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl px-4 py-2">
+              {loadError}
+            </div>
+          )}
+          {!isLoading && !loadError && stories.length === 0 && (
+            <div className="col-span-full text-sm text-gray-500">Belum ada cerita.</div>
+          )}
           {stories.map((story) => (
-            <button
-              key={story.id}
-              className="group relative bg-white/40 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer text-left border border-white/50 hover:border-green-300/70"
-            >
-              {/* Image */}
-              <div className="h-48 overflow-hidden relative">
-                <img 
-                  src={story.imageUrl} 
-                  alt={story.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className={`absolute inset-0 bg-gradient-to-t ${story.bgColor} opacity-50 group-hover:opacity-60 transition-opacity`}></div>
-                
-                {/* Duration Badge */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-lg">
-                  <Clock className="w-3 h-3 text-green-600" />
-                  <span className="text-xs text-gray-700 font-semibold">{story.duration}</span>
-                </div>
-              </div>
-              
-              {/* Content */}
-              <div className="p-6 bg-white/60 backdrop-blur-md">
-                <h3 className="text-gray-800 mb-2 group-hover:text-green-600 transition-colors">
-                  {story.title}
-                </h3>
-                <p className="text-gray-700 mb-4 text-sm line-clamp-2">
-                  {story.description}
-                </p>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <BookOpen className="w-4 h-4" />
-                    <span>{story.author}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                  </div>
-                  <div className="bg-green-100/80 backdrop-blur-sm text-green-700 px-4 py-2 rounded-full text-sm group-hover:bg-green-600 group-hover:text-white transition-colors border border-green-200/50 flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
-                    Baca
-                  </div>
-                </div>
-              </div>
-            </button>
+            <StoryCard key={story.id} story={story} />
           ))}
         </div>
       </div>

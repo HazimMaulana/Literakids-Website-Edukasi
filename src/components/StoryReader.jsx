@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 
 export function StoryReader({ pages, title }) {
   const [currentPage, setCurrentPage] = useState(0);
+  const currentAudio = pages[currentPage]?.audio;
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
 
   const nextPage = () => {
     if (currentPage < pages.length - 1) {
@@ -18,9 +21,38 @@ export function StoryReader({ pages, title }) {
     }
   };
 
+  const handleTouchStart = (event) => {
+    const touch = event.touches?.[0];
+    if (!touch) return;
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (event) => {
+    const touch = event.changedTouches?.[0];
+    if (!touch || touchStartX.current === null || touchStartY.current === null) {
+      return;
+    }
+
+    const deltaX = touch.clientX - touchStartX.current;
+    const deltaY = touch.clientY - touchStartY.current;
+    const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY);
+
+    if (isHorizontal && Math.abs(deltaX) > 50) {
+      if (deltaX < 0) {
+        nextPage();
+      } else {
+        prevPage();
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/50 h-[650px] md:h-[750px] relative flex flex-col">
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/50 relative flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white flex justify-between items-center">
           <h2 className="font-dynapuff text-xl font-bold truncate">{title}</h2>
@@ -31,17 +63,32 @@ export function StoryReader({ pages, title }) {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-6 md:p-8 overflow-y-auto relative">
-          <div className="flex flex-col items-center justify-center min-h-full text-center">
+        <div
+          className="flex-1 p-6 md:p-8 relative"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="flex flex-col items-center justify-center text-center">
             <div className="w-full max-w-2xl mb-6 animate-fadeIn">
-              <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg border-4 border-white/50">
+              <div className="rounded-2xl overflow-hidden shadow-lg border-4 border-white/50 bg-white/70 flex items-center justify-center">
                 <img 
                   src={pages[currentPage].image} 
                   alt={`Ilustrasi halaman ${currentPage + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto max-h-[420px] object-contain"
                 />
               </div>
             </div>
+            {currentAudio ? (
+              <div className="w-full max-w-xl mb-6 animate-fadeIn">
+                <audio
+                  className="w-full"
+                  controls
+                  src={currentAudio}
+                >
+                  Browser kamu tidak mendukung audio.
+                </audio>
+              </div>
+            ) : null}
             <p className="text-lg md:text-xl lg:text-2xl text-gray-800 font-medium leading-relaxed animate-fadeIn max-w-3xl">
               {pages[currentPage].text}
             </p>

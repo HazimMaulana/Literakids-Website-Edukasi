@@ -1,70 +1,51 @@
 'use client';
 
-import { 
-  Clock,
-  BookOpen,
-  Heart,
-  Star
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Navbar } from '../../components/Navbar';
+import { StoryCard } from '../../components/StoryCard';
+import { filterCeritaByCategory, mapCeritaToCard } from '../../lib/ceritaMapper';
 
 export default function BeribadahPage() {
-  const stories = [
-    {
-      id: 1,
-      title: "Adzan Pagi yang Indah",
-      description: "Belajar tentang keindahan adzan dan pentingnya sholat lima waktu!",
-      imageUrl: "https://images.unsplash.com/photo-1591604466107-ec97de577aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3NxdWUlMjBraWRzfGVufDF8fHx8MTc2NjAyMjQzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      duration: "6 menit",
-      author: "Bu Siti",
-      bgColor: "from-green-400 to-teal-500"
-    },
-    {
-      id: 2,
-      title: "Wudhu yang Benar",
-      description: "Yuk belajar cara berwudhu yang baik dan benar sesuai tuntunan!",
-      imageUrl: "https://images.unsplash.com/photo-1591604466107-ec97de577aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3NxdWUlMjBraWRzfGVufDF8fHx8MTc2NjAyMjQzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      duration: "5 menit",
-      author: "Pak Ahmad",
-      bgColor: "from-blue-400 to-cyan-500"
-    },
-    {
-      id: 3,
-      title: "Doa Sehari-hari",
-      description: "Mengenal doa-doa yang sering kita pakai dalam kehidupan sehari-hari!",
-      imageUrl: "https://images.unsplash.com/photo-1591604466107-ec97de577aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3NxdWUlMjBraWRzfGVufDF8fHx8MTc2NjAyMjQzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      duration: "7 menit",
-      author: "Bu Nur",
-      bgColor: "from-purple-400 to-pink-500"
-    },
-    {
-      id: 4,
-      title: "Berbagi di Bulan Ramadhan",
-      description: "Kisah indah tentang berbagi dan kepedulian di bulan penuh berkah!",
-      imageUrl: "https://images.unsplash.com/photo-1591604466107-ec97de577aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3NxdWUlMjBraWRzfGVufDF8fHx8MTc2NjAyMjQzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      duration: "8 menit",
-      author: "Pak Budi",
-      bgColor: "from-yellow-400 to-orange-500"
-    },
-    {
-      id: 5,
-      title: "Sholat Berjamaah",
-      description: "Belajar tentang keutamaan sholat berjamaah bersama teman-teman!",
-      imageUrl: "https://images.unsplash.com/photo-1591604466107-ec97de577aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3NxdWUlMjBraWRzfGVufDF8fHx8MTc2NjAyMjQzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      duration: "6 menit",
-      author: "Bu Ani",
-      bgColor: "from-emerald-400 to-green-500"
-    },
-    {
-      id: 6,
-      title: "Rajin Mengaji",
-      description: "Petualangan seru belajar membaca Al-Quran dengan lancar!",
-      imageUrl: "https://images.unsplash.com/photo-1591604466107-ec97de577aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3NxdWUlMjBraWRzfGVufDF8fHx8MTc2NjAyMjQzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      duration: "7 menit",
-      author: "Bu Siti",
-      bgColor: "from-indigo-400 to-purple-500"
-    }
-  ];
+  const [stories, setStories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStories = async () => {
+      setIsLoading(true);
+      setLoadError('');
+      try {
+        const response = await fetch('/api/cerita');
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload?.error || 'Gagal memuat cerita.');
+        }
+        const payload = await response.json();
+        const items = Array.isArray(payload?.data) ? payload.data : [];
+        const filtered = filterCeritaByCategory(items, 'Beribadah');
+        if (isMounted) {
+          setStories(filtered.map(mapCeritaToCard));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLoadError(error.message);
+          setStories([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchStories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50">
@@ -114,58 +95,19 @@ export default function BeribadahPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading && (
+            <div className="col-span-full text-sm text-gray-500">Memuat cerita...</div>
+          )}
+          {!isLoading && loadError && (
+            <div className="col-span-full text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl px-4 py-2">
+              {loadError}
+            </div>
+          )}
+          {!isLoading && !loadError && stories.length === 0 && (
+            <div className="col-span-full text-sm text-gray-500">Belum ada cerita.</div>
+          )}
           {stories.map((story) => (
-            <button
-              key={story.id}
-              className="group relative bg-white/40 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer text-left border border-white/50 hover:border-green-300/70"
-            >
-              {/* Image */}
-              <div className="h-48 overflow-hidden relative">
-                <img 
-                  src={story.imageUrl} 
-                  alt={story.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className={`absolute inset-0 bg-gradient-to-t ${story.bgColor} opacity-50 group-hover:opacity-60 transition-opacity`}></div>
-                
-                {/* Duration Badge */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-lg">
-                  <Clock className="w-3 h-3 text-green-600" />
-                  <span className="text-xs text-gray-700 font-semibold">{story.duration}</span>
-                </div>
-              </div>
-              
-              {/* Content */}
-              <div className="p-6 bg-white/60 backdrop-blur-md">
-                <h3 className="text-gray-800 mb-2 group-hover:text-green-600 transition-colors">
-                  {story.title}
-                </h3>
-                <p className="text-gray-700 mb-4 text-sm line-clamp-2">
-                  {story.description}
-                </p>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <BookOpen className="w-4 h-4" />
-                    <span>{story.author}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                  </div>
-                  <div className="bg-green-100/80 backdrop-blur-sm text-green-700 px-4 py-2 rounded-full text-sm group-hover:bg-green-600 group-hover:text-white transition-colors border border-green-200/50 flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
-                    Baca
-                  </div>
-                </div>
-              </div>
-            </button>
+            <StoryCard key={story.id} story={story} />
           ))}
         </div>
       </div>

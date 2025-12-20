@@ -22,7 +22,13 @@ export async function uploadImage(file, folder = 'uploads') {
   return payload
 }
 
-export function getPublicImageUrl(id) {
-  if (!id) return null
-  return `/api/upload/${id}`
+export function getPublicImageUrl(idOrUrl) {
+  if (!idOrUrl) return null
+  if (idOrUrl.startsWith('http://') || idOrUrl.startsWith('https://')) {
+    return idOrUrl
+  }
+  if (idOrUrl.startsWith('/')) {
+    return idOrUrl
+  }
+  return `/api/upload/${idOrUrl}`
 }
