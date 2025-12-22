@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BookOpen, Users, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, LogOut, Menu, X, FileText } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AdminLayout({ children }) {
@@ -24,6 +24,11 @@ export default function AdminLayout({ children }) {
       title: 'Kelola Siswa',
       href: '/admin/siswa',
       icon: Users
+    },
+    {
+      title: 'Jurnal Siswa',
+      href: '/admin/jurnal',
+      icon: FileText
     }
   ];
 

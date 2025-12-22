@@ -1,9 +1,9 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Check } from 'lucide-react';
 
-export function StoryReader({ pages, title }) {
+export function StoryReader({ pages, title, onFinish }) {
   const [currentPage, setCurrentPage] = useState(0);
   const currentAudio = pages[currentPage]?.audio;
   const touchStartX = useRef(null);
@@ -123,16 +123,16 @@ export function StoryReader({ pages, title }) {
           </div>
 
           <button
-            onClick={nextPage}
-            disabled={currentPage === pages.length - 1}
+            onClick={currentPage === pages.length - 1 && onFinish ? onFinish : nextPage}
+            disabled={!onFinish && currentPage === pages.length - 1}
             className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
-              currentPage === pages.length - 1
+              (!onFinish && currentPage === pages.length - 1)
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md hover:shadow-lg hover:opacity-90'
             }`}
           >
-            <span className="hidden md:inline">Selanjutnya</span>
-            <ChevronRight className="w-5 h-5" />
+            <span className="hidden md:inline">{currentPage === pages.length - 1 && onFinish ? 'Selesai' : 'Selanjutnya'}</span>
+            {currentPage === pages.length - 1 && onFinish ? <Check className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
           </button>
         </div>
       </div>

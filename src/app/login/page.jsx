@@ -26,10 +26,27 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (username && password) {
-      setIsLoggedIn(true);
+      try {
+        const res = await fetch('/api/siswa');
+        const data = await res.json();
+        const user = data.data?.find(u => u.username === username);
+        
+        if (user) {
+           localStorage.setItem('user', JSON.stringify(user));
+           setIsLoggedIn(true);
+        } else {
+           // Fallback for demo/testing if user not found in DB but wants to proceed
+           // Note: Journal submission will fail if user doesn't have valid _id
+           console.warn('User not found in DB, logging in as guest/demo');
+           setIsLoggedIn(true);
+        }
+      } catch (err) {
+        console.error(err);
+        setIsLoggedIn(true);
+      }
     }
   };
 
@@ -37,6 +54,7 @@ export default function LoginPage() {
     setIsLoggedIn(false);
     setUsername('');
     setPassword('');
+    localStorage.removeItem('user');
   };
 
   if (isLoggedIn) {

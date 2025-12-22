@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { ArrowLeft, Clock, Sparkles } from 'lucide-react';
 import { StoryReader } from '../../../components/StoryReader';
 import { Navbar } from '../../../components/Navbar';
+import { JournalForm } from '../../../components/JournalForm';
 import { allStories } from '../../../lib/stories';
 import { mapCeritaToStory } from '../../../lib/ceritaMapper';
 
@@ -15,6 +16,8 @@ export default function StoryPage() {
   const [story, setStory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [showJournal, setShowJournal] = useState(false);
+  const [journalSubmitted, setJournalSubmitted] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -93,6 +96,40 @@ export default function StoryPage() {
     );
   }
 
+  if (journalSubmitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 py-24 md:py-32 text-center">
+           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/50 animate-fadeIn">
+             <Sparkles className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+             <h2 className="text-3xl font-bold font-dynapuff text-green-600 mb-4">Terima Kasih!</h2>
+             <p className="text-xl text-gray-700 mb-8">Jurnal kamu sudah disimpan. Guru akan membacanya nanti.</p>
+             <Link href="/" className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg">
+               Kembali ke Beranda
+             </Link>
+           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showJournal) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 py-24 md:py-32">
+           <JournalForm 
+              storyId={story.id}
+              storyTitle={story.title}
+              onCancel={() => setShowJournal(false)}
+              onSuccess={() => setJournalSubmitted(true)}
+           />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50">
       <Navbar />
@@ -152,6 +189,11 @@ export default function StoryPage() {
             <StoryReader 
               pages={story.content} 
               title={story.title} 
+              onFinish={
+                typeof story.id === 'string' && /^[a-f0-9]{24}$/i.test(story.id) 
+                  ? () => setShowJournal(true) 
+                  : undefined
+              }
             />
           </div>
         </div>
