@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Navbar } from '../../components/Navbar';
 import { StoryCard } from '../../components/StoryCard';
-import { filterCeritaByCategory, mapCeritaToCard } from '../../lib/ceritaMapper';
+import { filterCeritaByCategory, mapCeritaToCard, calculateTotalDuration } from '../../lib/ceritaMapper';
 
 export default function BeribadahPage() {
   const [stories, setStories] = useState([]);
@@ -25,8 +25,28 @@ export default function BeribadahPage() {
         const payload = await response.json();
         const items = Array.isArray(payload?.data) ? payload.data : [];
         const filtered = filterCeritaByCategory(items, 'Beribadah');
+        
         if (isMounted) {
-          setStories(filtered.map(mapCeritaToCard));
+          const mappedStories = filtered.map(mapCeritaToCard);
+          setStories(mappedStories);
+
+          // Calculate real durations in background
+          mappedStories.forEach(async (story, index) => {
+             if (story.rawPages && story.rawPages.length > 0) {
+                const realDuration = await calculateTotalDuration(story.rawPages);
+                if (realDuration && isMounted) {
+                   setStories(prev => {
+                      const newStories = [...prev];
+                      // Find the story by ID to be safe, or index if order is preserved
+                      const targetIndex = newStories.findIndex(s => s.id === story.id);
+                      if (targetIndex !== -1) {
+                          newStories[targetIndex] = { ...newStories[targetIndex], duration: realDuration };
+                      }
+                      return newStories;
+                   });
+                }
+             }
+          });
         }
       } catch (error) {
         if (isMounted) {

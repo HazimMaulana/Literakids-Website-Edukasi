@@ -31,6 +31,47 @@ const getFirstAudio = (pages) => {
   return normalizeText(first?.audioUrl)
 }
 
+export const calculateTotalDuration = async (pages) => {
+  if (!pages || pages.length === 0) return null;
+  
+  // Handle both raw pages (from DB) and mapped pages (from mapCeritaToStory)
+  const audioUrls = pages.map(p => p.audio || p.audioUrl).filter(Boolean);
+  if (audioUrls.length === 0) return null;
+
+  try {
+    const durationPromises = audioUrls.map(url => {
+      return new Promise((resolve) => {
+        const audio = new Audio(url);
+        audio.preload = 'metadata';
+        audio.onloadedmetadata = () => {
+          resolve(audio.duration);
+        };
+        audio.onerror = () => {
+          resolve(0);
+        };
+        // Timeout to prevent hanging
+        setTimeout(() => resolve(0), 5000);
+      });
+    });
+
+    const durations = await Promise.all(durationPromises);
+    const totalSeconds = durations.reduce((a, b) => a + b, 0);
+    
+    if (totalSeconds === 0) return null;
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    
+    if (minutes > 0) {
+        return `${minutes} menit ${seconds > 0 ? `${seconds} detik` : ''}`;
+    }
+    return `${seconds} detik`;
+  } catch (e) {
+    console.error("Error calculating duration:", e);
+    return null;
+  }
+};
+
 export const filterCeritaByCategory = (stories, category) => {
   const target = normalizeCategory(category)
   return (stories || []).filter((story) => {
@@ -48,7 +89,9 @@ export const mapCeritaToCard = (story) => {
     getFirstImage(pages) ||
     CATEGORY_FALLBACK_IMAGES[category] ||
     '/assets/dashboard-hero-mobile.png'
-  const durationMinutes = Math.max(1, pages.length) * 2
+  
+  // Default heuristic: 1 minute per page (better estimate than 2)
+  const durationMinutes = Math.max(1, pages.length);
 
   return {
     id: story?._id,
@@ -59,6 +102,8 @@ export const mapCeritaToCard = (story) => {
     author: 'Tim Literakids',
     bgColor: CATEGORY_COLORS[category] || 'from-blue-400 to-purple-500',
     category,
+    // Pass raw pages to allow async calculation later if needed
+    rawPages: pages 
   }
 }
 

@@ -8,7 +8,7 @@ import { StoryReader } from '../../../components/StoryReader';
 import { Navbar } from '../../../components/Navbar';
 import { JournalForm } from '../../../components/JournalForm';
 import { allStories } from '../../../lib/stories';
-import { mapCeritaToStory } from '../../../lib/ceritaMapper';
+import { mapCeritaToStory, calculateTotalDuration } from '../../../lib/ceritaMapper';
 
 export default function StoryPage() {
   const params = useParams();
@@ -31,6 +31,14 @@ export default function StoryPage() {
         setStory(localStory || null);
         setIsLoading(false);
         setLoadError(localStory ? '' : 'Cerita tidak ditemukan.');
+
+        if (localStory && localStory.content) {
+          calculateTotalDuration(localStory.content).then(realDuration => {
+              if (realDuration && isMounted) {
+                  setStory(prev => prev ? ({ ...prev, duration: realDuration }) : null);
+              }
+          });
+        }
       }
       return () => {
         isMounted = false;
@@ -51,6 +59,14 @@ export default function StoryPage() {
           throw new Error('Cerita belum dipublikasikan.');
         }
         const mapped = mapCeritaToStory(payload?.data);
+        
+        if (mapped.content && mapped.content.length > 0) {
+           const realDuration = await calculateTotalDuration(mapped.content);
+           if (realDuration) {
+             mapped.duration = realDuration;
+           }
+        }
+
         if (isMounted) {
           setStory(mapped);
         }
