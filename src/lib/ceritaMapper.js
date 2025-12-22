@@ -99,7 +99,7 @@ export const mapCeritaToCard = (story) => {
     description: getFirstText(pages),
     imageUrl,
     duration: `${durationMinutes} menit`,
-    author: 'Tim Literakids',
+    author: 'Titis Dea Mascambuan',
     bgColor: CATEGORY_COLORS[category] || 'from-blue-400 to-purple-500',
     category,
     // Pass raw pages to allow async calculation later if needed

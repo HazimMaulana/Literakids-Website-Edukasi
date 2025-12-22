@@ -1,11 +1,81 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { StoryCard } from '../components/StoryCard';
 import { allStories } from '../lib/stories';
+import { mapCeritaToCard, calculateTotalDuration } from '../lib/ceritaMapper';
 
 export default function Home({ userName = "Teman", onLogout }) {
+  const [displayStories, setDisplayStories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAndCombineStories = async () => {
+      try {
+        // 1. Fetch stories from API
+        const response = await fetch('/api/cerita', { cache: 'no-store' });
+        let dbStories = [];
+        
+        if (response.ok) {
+          const payload = await response.json();
+          const items = Array.isArray(payload?.data) ? payload.data : [];
+          
+          // Filter only published stories (case insensitive and trimmed)
+          dbStories = items
+            .filter(item => {
+              const status = item.status ? item.status.trim().toLowerCase() : '';
+              return status === 'published';
+            })
+            .map(mapCeritaToCard);
+        }
+
+        // 2. Combine with local stories (Prioritize DB stories)
+        // If we have DB stories, put them first.
+        const combined = [...dbStories, ...allStories];
+
+        // 3. Limit to 6 stories
+        const limitedStories = combined.slice(0, 6);
+
+        if (isMounted) {
+          setDisplayStories(limitedStories);
+          setIsLoading(false);
+
+          // 4. Calculate real durations for DB stories in background
+          limitedStories.forEach(async (story) => {
+             if (story.rawPages && story.rawPages.length > 0) {
+                const realDuration = await calculateTotalDuration(story.rawPages);
+                if (realDuration && isMounted) {
+                   setDisplayStories(prev => {
+                      const newStories = [...prev];
+                      const targetIndex = newStories.findIndex(s => s.id === story.id);
+                      if (targetIndex !== -1) {
+                          newStories[targetIndex] = { ...newStories[targetIndex], duration: realDuration };
+                      }
+                      return newStories;
+                   });
+                }
+             }
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch stories:", error);
+        if (isMounted) {
+          // Fallback to local stories if API fails
+          setDisplayStories(allStories.slice(0, 6));
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchAndCombineStories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-blue-100">
@@ -58,11 +128,17 @@ export default function Home({ userName = "Teman", onLogout }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allStories.map((story) => (
-              <StoryCard key={story.id} story={story} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="text-gray-500 font-dynapuff animate-pulse">Sedang memuat cerita seru...</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayStories.map((story) => (
+                <StoryCard key={story.id} story={story} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Fun Footer with Glassmorphism */}
