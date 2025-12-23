@@ -71,10 +71,16 @@ export async function PUT(request, { params }) {
     );
   }
 
+  const glosariumInput = Array.isArray(payload?.glosarium) ? payload.glosarium : [];
+  const glosarium = glosariumInput.map((item) => ({
+    kata: normalizeText(item?.kata),
+    arti: normalizeText(item?.arti),
+  })).filter(item => item.kata && item.arti);
+
   try {
     const updated = await Cerita.findByIdAndUpdate(
       id,
-      { judul, kategori, status, coverUrl, halaman },
+      { judul, kategori, status, coverUrl, halaman, glosarium },
       { new: true }
     );
 

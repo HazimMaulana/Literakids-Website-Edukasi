@@ -89,6 +89,7 @@ export default function AdminCeritaPage() {
       kategori: 'Bermasyarakat',
       status: 'Draft',
       coverUrl: '',
+      glosarium: [],
       halaman: [
         {
           gambarUrl: '',
@@ -109,6 +110,7 @@ export default function AdminCeritaPage() {
       kategori: target.kategori || story.category || 'Bermasyarakat',
       status: target.status || story.status || 'Draft',
       coverUrl: target.coverUrl || story.cover || '',
+      glosarium: Array.isArray(target.glosarium) ? target.glosarium : [],
       halaman:
         Array.isArray(target.halaman) && target.halaman.length > 0
           ? target.halaman
@@ -236,6 +238,28 @@ export default function AdminCeritaPage() {
       ...prev,
       halaman: prev.halaman.filter((_, pageIndex) => pageIndex !== index),
     }));
+  };
+
+  const handleAddGlossary = () => {
+    setFormData((prev) => ({
+      ...prev,
+      glosarium: [...(prev.glosarium || []), { kata: '', arti: '' }],
+    }));
+  };
+
+  const handleRemoveGlossary = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      glosarium: prev.glosarium.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleGlossaryChange = (index, field, value) => {
+    setFormData((prev) => {
+      const nextGlossary = [...(prev.glosarium || [])];
+      nextGlossary[index] = { ...nextGlossary[index], [field]: value };
+      return { ...prev, glosarium: nextGlossary };
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -375,6 +399,45 @@ export default function AdminCeritaPage() {
                    <p className="text-xs text-gray-500 break-all">{formData.coverUrl}</p>
                  )}
               </div>
+            </div>
+            
+            <div className="mt-8 pt-8 border-t border-gray-100">
+               <h3 className="text-lg font-bold text-gray-800 mb-4">Glosarium</h3>
+               <div className="space-y-4">
+                  {formData?.glosarium?.map((item, index) => (
+                    <div key={`glossary-${index}`} className="flex gap-4 items-start bg-gray-50 p-4 rounded-xl border border-gray-200">
+                      <div className="flex-1 space-y-2">
+                        <input
+                          type="text"
+                          placeholder="Kata"
+                          value={item.kata}
+                          onChange={(e) => handleGlossaryChange(index, 'kata', e.target.value)}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-400 outline-none bg-white"
+                        />
+                        <textarea
+                          placeholder="Arti"
+                          value={item.arti}
+                          onChange={(e) => handleGlossaryChange(index, 'arti', e.target.value)}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-400 outline-none bg-white min-h-[60px]"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGlossary(index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleAddGlossary}
+                    className="px-4 py-2 rounded-full bg-white border border-gray-200 text-sm text-blue-600 shadow-sm hover:bg-gray-50"
+                  >
+                    + Tambah Glosarium
+                  </button>
+               </div>
             </div>
             
             <div className="mt-8 pt-8 border-t border-gray-100">

@@ -192,10 +192,19 @@ export default function StoryPage() {
                   <p className="text-gray-800 font-medium">{story.author}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Sinopsis</h3>
-                  <p className="text-gray-700 leading-relaxed text-sm">
-                    {story.description}
-                  </p>
+                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Glosarium</h3>
+                  {story.glosarium && story.glosarium.length > 0 ? (
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                      {story.glosarium.map((item, idx) => (
+                        <div key={idx} className="text-sm text-gray-700 bg-white/50 p-2 rounded-lg">
+                          <span className="font-bold text-blue-600 block">{item.kata}</span>
+                          <span className="text-gray-600">{item.arti}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">Tidak ada glosarium.</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -205,6 +214,7 @@ export default function StoryPage() {
             <StoryReader 
               pages={story.content} 
               title={story.title} 
+              glosarium={story.glosarium}
               onFinish={
                 typeof story.id === 'string' && /^[a-f0-9]{24}$/i.test(story.id) 
                   ? () => setShowJournal(true) 

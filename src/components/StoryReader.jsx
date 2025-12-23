@@ -1,10 +1,11 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, BookOpen, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Check, Book, X } from 'lucide-react';
 
-export function StoryReader({ pages, title, onFinish }) {
+export function StoryReader({ pages, title, onFinish, glosarium }) {
   const [currentPage, setCurrentPage] = useState(0);
+  const [showGlossary, setShowGlossary] = useState(false);
   const currentAudio = pages[currentPage]?.audio;
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
@@ -54,9 +55,20 @@ export function StoryReader({ pages, title, onFinish }) {
     <div className="w-full max-w-4xl mx-auto">
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/50 relative flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white flex justify-between items-center">
-          <h2 className="font-dynapuff text-xl font-bold truncate">{title}</h2>
-          <div className="flex items-center gap-2 text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white flex justify-between items-center gap-4">
+          <div className="flex items-center gap-3 overflow-hidden flex-1">
+             <h2 className="font-dynapuff text-xl font-bold truncate">{title}</h2>
+             {glosarium && glosarium.length > 0 && (
+                <button 
+                  onClick={() => setShowGlossary(true)}
+                  className="bg-white/20 hover:bg-white/30 p-1.5 rounded-full transition-colors shrink-0"
+                  title="Lihat Glosarium"
+                >
+                   <Book className="w-4 h-4" />
+                </button>
+             )}
+          </div>
+          <div className="flex items-center gap-2 text-sm font-medium bg-white/20 px-3 py-1 rounded-full shrink-0">
             <BookOpen className="w-4 h-4" />
             <span>Halaman {currentPage + 1} / {pages.length}</span>
           </div>
@@ -136,6 +148,39 @@ export function StoryReader({ pages, title, onFinish }) {
           </button>
         </div>
       </div>
+
+      {showGlossary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden animate-fadeIn">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <Book className="w-5 h-5" /> Glosarium
+              </h3>
+              <button onClick={() => setShowGlossary(false)} className="hover:bg-white/20 p-1 rounded-full transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+               <div className="space-y-4">
+                  {glosarium.map((item, idx) => (
+                    <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                       <h4 className="font-bold text-blue-600 mb-1">{item.kata}</h4>
+                       <p className="text-gray-700 text-sm leading-relaxed">{item.arti}</p>
+                    </div>
+                  ))}
+               </div>
+            </div>
+            <div className="p-4 border-t border-gray-100 bg-gray-50 text-center">
+               <button 
+                 onClick={() => setShowGlossary(false)}
+                 className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors shadow-lg"
+               >
+                 Tutup
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <style jsx>{`
         @keyframes fadeIn {

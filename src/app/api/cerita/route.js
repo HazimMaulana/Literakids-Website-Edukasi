@@ -45,6 +45,12 @@ export async function POST(request) {
     );
   }
 
+  const glosariumInput = Array.isArray(payload?.glosarium) ? payload.glosarium : [];
+  const glosarium = glosariumInput.map((item) => ({
+    kata: normalizeText(item?.kata),
+    arti: normalizeText(item?.arti),
+  })).filter(item => item.kata && item.arti);
+
   try {
     const created = await Cerita.create({
       judul,
@@ -52,6 +58,7 @@ export async function POST(request) {
       status,
       coverUrl,
       halaman,
+      glosarium,
     });
 
     return NextResponse.json({ data: created }, { status: 201 });

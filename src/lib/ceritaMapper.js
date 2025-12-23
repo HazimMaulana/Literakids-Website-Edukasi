@@ -109,6 +109,7 @@ export const mapCeritaToCard = (story) => {
 
 export const mapCeritaToStory = (story) => {
   const pages = Array.isArray(story?.halaman) ? story.halaman : []
+  const glosarium = Array.isArray(story?.glosarium) ? story.glosarium : []
   const card = mapCeritaToCard(story)
   const fallbackImage = card.imageUrl
   const fallbackAudio = getFirstAudio(pages)
@@ -130,5 +131,6 @@ export const mapCeritaToStory = (story) => {
   return {
     ...card,
     content,
+    glosarium,
   }
 }
