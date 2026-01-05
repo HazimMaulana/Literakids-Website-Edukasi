@@ -13,9 +13,11 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Username dan password wajib diisi' }, { status: 400 });
   }
 
-  // 1. Check for Hardcoded Admin (Simple solution for now)
-  // In a real app, use a database model for admins.
-  if (username === 'admin' && password === 'admin123') { // You should change this or use env var
+  // 1. Check for Admin (Using Environment Variables)
+  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+
+  if (username === adminUsername && password === adminPassword) {
     const cookieStore = await cookies();
     cookieStore.set('auth_token', 'admin-token', {
       httpOnly: true,
