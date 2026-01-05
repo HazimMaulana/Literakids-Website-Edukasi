@@ -1,13 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, BookOpen, Users, LogOut, Menu, X, FileText } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
+  };
 
   const menuItems = [
     {
@@ -109,13 +119,13 @@ export default function AdminLayout({ children }) {
                 </div>
               </div>
             </div>
-            <Link 
-              href="/login"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors w-full"
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors w-full text-left"
             >
               <LogOut className="w-5 h-5" />
               Keluar
-            </Link>
+            </button>
           </div>
         </div>
       </aside>

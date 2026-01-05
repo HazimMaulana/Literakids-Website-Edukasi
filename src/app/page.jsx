@@ -1,177 +1,87 @@
-'use client';
+import { LandingNavbar } from '../components/LandingNavbar';
+import Link from 'next/link';
+import { BookOpen, Star, Heart } from 'lucide-react';
 
-import { useEffect, useState } from 'react';
-import { Navbar } from '../components/Navbar';
-import { StoryCard } from '../components/StoryCard';
-import { allStories } from '../lib/stories';
-import { mapCeritaToCard, calculateTotalDuration } from '../lib/ceritaMapper';
-
-export default function Home({ userName = "Teman", onLogout }) {
-  const [displayStories, setDisplayStories] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchAndCombineStories = async () => {
-      try {
-        // 1. Fetch stories from API
-        const response = await fetch('/api/cerita', { cache: 'no-store' });
-        let dbStories = [];
-        
-        if (response.ok) {
-          const payload = await response.json();
-          const items = Array.isArray(payload?.data) ? payload.data : [];
-          
-          // Filter only published stories (case insensitive and trimmed)
-          dbStories = items
-            .filter(item => {
-              const status = item.status ? item.status.trim().toLowerCase() : '';
-              return status === 'published';
-            })
-            .map(mapCeritaToCard);
-        }
-
-        // 2. Combine with local stories (Prioritize DB stories)
-        // If we have DB stories, put them first.
-        const combined = [...dbStories, ...allStories];
-
-        // 3. Limit to 6 stories
-        const limitedStories = combined.slice(0, 6);
-
-        if (isMounted) {
-          setDisplayStories(limitedStories);
-          setIsLoading(false);
-
-          // 4. Calculate real durations for DB stories in background
-          limitedStories.forEach(async (story) => {
-             if (story.rawPages && story.rawPages.length > 0) {
-                const realDuration = await calculateTotalDuration(story.rawPages);
-                if (realDuration && isMounted) {
-                   setDisplayStories(prev => {
-                      const newStories = [...prev];
-                      const targetIndex = newStories.findIndex(s => s.id === story.id);
-                      if (targetIndex !== -1) {
-                          newStories[targetIndex] = { ...newStories[targetIndex], duration: realDuration };
-                      }
-                      return newStories;
-                   });
-                }
-             }
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch stories:", error);
-        if (isMounted) {
-          // Fallback to local stories if API fails
-          setDisplayStories(allStories.slice(0, 6));
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchAndCombineStories();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-blue-100">
-      <Navbar onLogout={onLogout} />
+    <div className="min-h-screen bg-gradient-to-br from-sky-200 via-indigo-100 to-purple-200">
+      <LandingNavbar />
 
-      {/* Hero Section - Full Width with Background Image */}
-      <div className="relative py-32 md:py-40 mb-12 overflow-hidden">
-        {/* Background Images - Responsive */}
-        <div className="absolute inset-0">
-          {/* Mobile Background */}
-          <img 
-            src="/assets/dashboard-hero-mobile.png"
-            alt="SDN 5 Taliwang - Mobile"
-            className="md:hidden w-full h-full object-cover"
-          />
-          {/* Desktop Background */}
-          <img 
+      {/* Hero Section */}
+      <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+           {/* Background Image - Made bolder and more visible */}
+           <img 
             src="/assets/dashboard-hero-desktop.png"
-            alt="SDN 5 Taliwang - Desktop"
-            className="hidden md:block w-full h-full object-cover"
+            alt="Background"
+            className="w-full h-full object-cover opacity-40 saturate-150"
           />
-          {/* Dim overlay for better text contrast */}
-          <div className="absolute inset-0 bg-black/40"></div>
+          {/* Gradient overlay to ensure text readability while keeping colors */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/50 to-white/90"></div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
-          <div className="relative z-10 py-8 md:py-12 flex justify-center md:justify-end">
-            {/* Content - Text Only without background */}
-            <div className="max-w-4xl mx-auto md:mx-0 text-center md:text-right font-dynapuff">
-              <div className="flex items-center justify-center md:justify-end gap-3 mb-6">
-                <h1 className="text-white font-dynapuff font-bold text-4xl md:text-5xl drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">Halo, {userName}!</h1>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-8 drop-shadow-sm">
+            Belajar Membaca Menjadi <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-pink-600 to-purple-700 drop-shadow-sm">
+              Lebih Menyenangkan
+            </span>
+          </h1>
+          <p className="mt-6 max-w-2xl mx-auto text-2xl text-slate-800 mb-10 font-bold">
+            Literakids hadir untuk menemani anak-anak belajar membaca dengan cerita interaktif, 
+            jurnal harian, dan aktivitas seru lainnya.
+          </p>
+          
+          <div className="flex justify-center gap-4">
+            <Link 
+              href="/login"
+              className="px-10 py-5 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-full font-extrabold text-xl shadow-[0_10px_20px_rgba(249,115,22,0.4)] hover:shadow-[0_15px_25px_rgba(249,115,22,0.5)] hover:scale-105 transition-all transform border-4 border-white/50"
+            >
+              Mulai Petualangan 🚀
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Card 1 - Blue Theme */}
+            <div className="p-8 rounded-3xl bg-blue-50 border-4 border-blue-400 text-center hover:shadow-2xl transition-all hover:-translate-y-2 transform hover:rotate-1">
+              <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white shadow-lg border-4 border-blue-200">
+                <BookOpen className="w-12 h-12" />
               </div>
-              <p className="text-3xl md:text-2xl text-white mb-8 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] leading-relaxed">
-                Selamat datang di Perpustakaan Cerita SDN 5 Taliwang! 
-                <br className="hidden md:block" />
-                Pilih kategori favoritmu dan mulai petualangan seru! ✨
+              <h3 className="text-2xl font-extrabold text-blue-900 mb-3">Cerita Interaktif</h3>
+              <p className="text-blue-800 text-lg font-medium">
+                Berbagai koleksi cerita mendidik yang dilengkapi dengan gambar menarik.
+              </p>
+            </div>
+
+            {/* Card 2 - Orange Theme */}
+            <div className="p-8 rounded-3xl bg-orange-50 border-4 border-orange-400 text-center hover:shadow-2xl transition-all hover:-translate-y-2 transform hover:-rotate-1">
+              <div className="w-24 h-24 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white shadow-lg border-4 border-orange-200">
+                <Star className="w-12 h-12" />
+              </div>
+              <h3 className="text-2xl font-extrabold text-orange-900 mb-3">Jurnal Harian</h3>
+              <p className="text-orange-800 text-lg font-medium">
+                Catat aktivitas harianmu dan kembangkan kebiasaan menulis sejak dini.
+              </p>
+            </div>
+
+            {/* Card 3 - Green Theme */}
+            <div className="p-8 rounded-3xl bg-green-50 border-4 border-green-400 text-center hover:shadow-2xl transition-all hover:-translate-y-2 transform hover:rotate-1">
+              <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white shadow-lg border-4 border-green-200">
+                <Heart className="w-12 h-12" />
+              </div>
+              <h3 className="text-2xl font-extrabold text-green-900 mb-3">Pendidikan Karakter</h3>
+              <p className="text-green-800 text-lg font-medium">
+                Belajar nilai-nilai kebaikan melalui cerita dan aktivitas yang positif.
               </p>
             </div>
           </div>
         </div>
       </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-2">
-        {/* Stories Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-gray-800 mb-2 font-dynapuff text-3xl font-semibold">Pilih Cerita Untukmu Hari Ini! 📚</h2>
-              <p className="text-gray-600 font-dynapuff">kamu bisa pilih cerita favoritmu!</p>
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="text-gray-500 font-dynapuff animate-pulse">Sedang memuat cerita seru...</div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayStories.map((story) => (
-                <StoryCard key={story.id} story={story} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Fun Footer with Glassmorphism */}
-        <div className="mt-12 relative rounded-3xl p-8 text-center shadow-2xl overflow-hidden">
-          {/* Background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-blue-400 to-teal-500 opacity-80"></div>
-          {/* Glass overlay */}
-          <div className="absolute inset-0 backdrop-blur-sm bg-white/10 border border-white/20"></div>
-          
-          <div className="relative z-10">
-            <p className="text-2xl text-white mb-3 drop-shadow-lg">
-              ✨ Selamat Membaca dan Terus Berimajinasi! ✨
-            </p>
-            <p className="text-white/95 drop-shadow-md">
-              Jangan lupa untuk membaca setiap hari ya! 📚
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   LogOut,
   Menu,
@@ -15,9 +15,29 @@ import {
 export function Navbar({ onLogout }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const isStoryPage = pathname?.startsWith('/cerita');
   const textColorClass = isStoryPage ? 'text-gray-800' : 'text-white';
   const buttonBgClass = isStoryPage ? 'bg-white/50 hover:bg-white/70' : 'bg-white/30 hover:bg-white/50';
+
+  const handleLogout = async () => {
+    try {
+      // 1. Call API to remove cookies
+      await fetch('/api/auth/logout', { method: 'POST' });
+      
+      // 2. Remove local storage
+      localStorage.removeItem('user');
+      
+      // 3. Execute parent onLogout if provided (optional)
+      if (onLogout) onLogout();
+
+      // 4. Redirect to Landing Page
+      router.push('/');
+      router.refresh(); // Ensure middleware re-runs
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
+  };
 
   return (
     <header className="absolute top-0 left-0 right-0 z-50">
@@ -73,7 +93,7 @@ export function Navbar({ onLogout }) {
               </button>
 
               <button
-                onClick={onLogout}
+                onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-800/80 backdrop-blur-sm hover:bg-black/80 text-white rounded-full transition-colors shadow-lg border border-gray-700/50"
               >
                 <LogOut className="w-4 h-4" />

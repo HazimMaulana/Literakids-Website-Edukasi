@@ -1,38 +1,58 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Search, BookOpen, User, Calendar } from 'lucide-react';
+import { Loader2, Search, BookOpen, User, Calendar, Filter } from 'lucide-react';
 
 export default function AdminJurnalPage() {
   const [journals, setJournals] = useState([]);
+  const [stories, setStories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedStory, setSelectedStory] = useState('all');
 
   useEffect(() => {
-    fetchJournals();
+    const fetchData = async () => {
+      try {
+        const [journalsRes, storiesRes] = await Promise.all([
+          fetch('/api/jurnal'),
+          fetch('/api/cerita')
+        ]);
+        
+        const journalsData = await journalsRes.json();
+        const storiesData = await storiesRes.json();
+
+        if (journalsData.data) setJournals(journalsData.data);
+        if (storiesData.data) setStories(storiesData.data);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const fetchJournals = async () => {
-    try {
-      const res = await fetch('/api/jurnal');
-      const data = await res.json();
-      if (data.data) {
-        setJournals(data.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch journals:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Get unique categories from stories
+  const categories = ['all', ...new Set(stories.map(story => story.kategori).filter(Boolean))];
+
+  // Filter stories based on selected category
+  const filteredStoriesList = selectedCategory === 'all' 
+    ? stories 
+    : stories.filter(story => story.kategori === selectedCategory);
 
   const filteredJournals = journals.filter((journal) => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    const matchesSearch = 
       journal.siswaId?.nama?.toLowerCase().includes(searchLower) ||
       journal.ceritaId?.judul?.toLowerCase().includes(searchLower) ||
-      journal.submissionText?.toLowerCase().includes(searchLower)
-    );
+      journal.submissionText?.toLowerCase().includes(searchLower);
+
+    const matchesCategory = selectedCategory === 'all' || journal.ceritaId?.kategori === selectedCategory;
+    const matchesStory = selectedStory === 'all' || journal.ceritaId?._id === selectedStory;
+
+    return matchesSearch && matchesCategory && matchesStory;
   });
 
   if (isLoading) {
@@ -45,21 +65,56 @@ export default function AdminJurnalPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Jurnal Siswa</h1>
           <p className="text-gray-500">Lihat apa yang dipelajari siswa dari cerita mereka</p>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Cari siswa atau cerita..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
-          />
+        <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Cari siswa atau isi jurnal..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative min-w-[200px]">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setSelectedStory('all'); // Reset story filter when category changes
+                }}
+                className="pl-10 pr-8 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 w-full appearance-none bg-white cursor-pointer"
+              >
+                <option value="all">Semua Kategori</option>
+                {categories.filter(c => c !== 'all').map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="relative min-w-[200px]">
+              <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                value={selectedStory}
+                onChange={(e) => setSelectedStory(e.target.value)}
+                className="pl-10 pr-8 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 w-full appearance-none bg-white cursor-pointer"
+              >
+                <option value="all">Semua Cerita</option>
+                {filteredStoriesList.map(story => (
+                  <option key={story._id} value={story._id}>{story.judul}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 

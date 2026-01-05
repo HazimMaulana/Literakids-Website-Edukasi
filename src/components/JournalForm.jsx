@@ -23,6 +23,12 @@ export function JournalForm({ storyId, storyTitle, onCancel, onSuccess }) {
       }
       const user = JSON.parse(userStr);
       
+      // Ensure we have a valid ID
+      const userId = user._id || user.id;
+      if (!userId) {
+        throw new Error('Data user tidak valid. Silakan login ulang.');
+      }
+
       const response = await fetch('/api/jurnal', {
         method: 'POST',
         headers: {
@@ -30,7 +36,7 @@ export function JournalForm({ storyId, storyTitle, onCancel, onSuccess }) {
         },
         body: JSON.stringify({
           ceritaId: storyId,
-          siswaId: user._id || user.id, // Handle both cases
+          siswaId: userId,
           submissionText: text,
         }),
       });

@@ -1,65 +1,43 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { KeyRound, User } from 'lucide-react';
 
-function Dashboard({ userName, onLogout }) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50 flex flex-col items-center justify-center">
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/60 p-8 text-center space-y-4 max-w-lg w-full mx-4">
-        <p className="text-sm text-gray-500">Dashboard</p>
-        <h1 className="text-3xl font-bold text-gray-800">Halo, {userName || 'Teman'}!</h1>
-        <p className="text-gray-600">Kamu sudah masuk. Gunakan navigasi utama untuk mulai membaca cerita.</p>
-        <button
-          onClick={onLogout}
-          className="px-5 py-3 rounded-xl bg-gradient-to-r from-green-500 to-teal-600 text-white font-semibold shadow-md"
-        >
-          Keluar
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function LoginPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (username && password) {
-      try {
-        const res = await fetch('/api/siswa');
-        const data = await res.json();
-        const user = data.data?.find(u => u.username === username);
-        
-        if (user) {
-           localStorage.setItem('user', JSON.stringify(user));
-           setIsLoggedIn(true);
-        } else {
-           // Fallback for demo/testing if user not found in DB but wants to proceed
-           // Note: Journal submission will fail if user doesn't have valid _id
-           console.warn('User not found in DB, logging in as guest/demo');
-           setIsLoggedIn(true);
-        }
-      } catch (err) {
-        console.error(err);
-        setIsLoggedIn(true);
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // Store user info in localStorage for client-side usage if needed
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push(data.redirectUrl || '/dashboard');
+      } else {
+        setError(data.error || 'Login gagal');
       }
+    } catch (err) {
+      setError('Terjadi kesalahan saat login');
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUsername('');
-    setPassword('');
-    localStorage.removeItem('user');
-  };
-
-  if (isLoggedIn) {
-    return <Dashboard userName={username} onLogout={handleLogout} />;
-  }
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center">
@@ -93,6 +71,12 @@ export default function LoginPage() {
             <p className="text-white">Masuk untuk mulai membaca cerita seru</p>
           </div>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/80 text-white rounded-xl text-sm text-center">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-white ml-1">Nama Pengguna</label>
@@ -102,7 +86,7 @@ export default function LoginPage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all bg-white/50"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all bg-white/50 text-gray-800 placeholder-gray-500"
                   placeholder="Masukkan namamu..."
                   required
                 />
@@ -117,7 +101,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all bg-white/50"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all bg-white/50 text-gray-800 placeholder-gray-500"
                   placeholder="Masukkan kata sandi..."
                   required
                 />
@@ -126,9 +110,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-green-500 to-teal-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-green-500 to-teal-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 active:scale-[0.98] disabled:opacity-70"
             >
-              Mulai Petualangan! 🚀
+              {isLoading ? 'Sedang Masuk...' : 'Mulai Petualangan! 🚀'}
             </button>
           </form>
 

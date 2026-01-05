@@ -136,7 +136,7 @@ export default function StoryPage() {
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 py-24 md:py-32">
            <JournalForm 
-              storyId={story.id}
+              storyId={story._id || story.id}
               storyTitle={story.title}
               onCancel={() => setShowJournal(false)}
               onSuccess={() => setJournalSubmitted(true)}
@@ -215,11 +215,7 @@ export default function StoryPage() {
               pages={story.content} 
               title={story.title} 
               glosarium={story.glosarium}
-              onFinish={
-                typeof story.id === 'string' && /^[a-f0-9]{24}$/i.test(story.id) 
-                  ? () => setShowJournal(true) 
-                  : undefined
-              }
+              onFinish={() => setShowJournal(true)}
             />
           </div>
         </div>
