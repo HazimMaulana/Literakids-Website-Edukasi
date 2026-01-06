@@ -13,9 +13,11 @@ export async function GET() {
     return NextResponse.json({ data: cerita });
   } catch (error) {
     console.error('[API] Error fetching stories:', error);
-    return NextResponse.json({ error: 'Gagal memuat data cerita.' }, { status: 500 });
+    // Return detailed error message for debugging purposes
+    return NextResponse.json({ error: `Error DB: ${error.message}` }, { status: 500 });
   }
 }
+
 
 export async function POST(request) {
   try {
