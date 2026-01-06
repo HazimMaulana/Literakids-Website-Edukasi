@@ -18,6 +18,13 @@ export async function POST(request) {
   const adminUsername = cleanEnv(process.env.ADMIN_USERNAME) || 'admin';
   const adminPassword = cleanEnv(process.env.ADMIN_PASSWORD) || 'admin123';
 
+  console.log(`[LOGIN DEBUG] Input User: ${username}`);
+  console.log(`[LOGIN DEBUG] Env Admin: ${adminUsername ? 'LOADED' : 'MISSING'}`);
+  // Only log if admin check failed to help debug
+  if (username !== adminUsername || password !== adminPassword) {
+      console.log(`[LOGIN DEBUG] Credentials did not match Admin. Trying Student DB...`);
+  }
+
   if (username === adminUsername && password === adminPassword) {
     const cookieStore = await cookies();
     cookieStore.set('auth_token', 'admin-token', {
@@ -45,8 +52,10 @@ export async function POST(request) {
   try {
     await connectToDatabase();
   } catch (error) {
-    console.error("Database connection failed:", error);
-    return NextResponse.json({ error: 'Gagal terhubung ke database' }, { status: 500 });
+    console.error("[LOGIN ERROR] DB Connection Failed:", error);
+    return NextResponse.json({ 
+        error: `Gagal terhubung ke database (Error: ${error.message}). Pastikan IP Vercel diizinkan di MongoDB Atlas.` 
+    }, { status: 500 });
   }
 
   const passwordHash = createHash('sha256').update(password).digest('hex');
