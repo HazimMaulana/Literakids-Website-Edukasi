@@ -6,6 +6,9 @@ if (!MONGODB_URI) {
   throw new Error('MONGODB_URI is missing in environment variables');
 }
 
+// Ensure URI doesn't have surrounding quotes (common mistake in Vercel env vars)
+const cleanURI = MONGODB_URI.replace(/^"|"$/g, '');
+
 const globalForMongoose = global;
 
 let cached = globalForMongoose.mongoose;
@@ -21,7 +24,7 @@ export async function connectToDatabase() {
       serverSelectionTimeoutMS: 5000,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(cleanURI, opts).then((mongoose) => {
       console.log('✅ Connected to MongoDB');
       return mongoose;
     }).catch(err => {
