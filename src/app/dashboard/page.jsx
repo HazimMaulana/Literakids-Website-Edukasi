@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '../../components/Navbar';
 import { StoryCard } from '../../components/StoryCard';
-import { allStories } from '../../lib/stories';
 import { mapCeritaToCard, calculateTotalDuration } from '../../lib/ceritaMapper';
 
 export default function Home() {
@@ -56,9 +55,8 @@ export default function Home() {
             .map(mapCeritaToCard);
         }
 
-        // 2. Combine with local stories (Prioritize DB stories)
-        // If we have DB stories, put them first.
-        const combined = [...dbStories, ...allStories];
+        // 2. Only use DB stories (Remove local dummy stories)
+        const combined = [...dbStories];
 
         // 3. Limit to 6 stories
         const limitedStories = combined.slice(0, 6);
@@ -87,8 +85,8 @@ export default function Home() {
       } catch (error) {
         console.error("Failed to fetch stories:", error);
         if (isMounted) {
-          // Fallback to local stories if API fails
-          setDisplayStories(allStories.slice(0, 6));
+          // If API fails, show empty state instead of dummy data
+          setDisplayStories([]);
           setIsLoading(false);
         }
       }
