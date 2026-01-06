@@ -4,9 +4,10 @@ import { connectToDatabase } from '@/lib/mongoose';
 import Siswa from '@/models/Siswa';
 import { cookies } from 'next/headers';
 
-export async function POST(request) {
-  await connectToDatabase();
+// Helper to remove surrounding quotes if they exist in env vars
+const cleanEnv = (val) => val ? val.replace(/^"|"$/g, '') : val;
 
+export async function POST(request) {
   const { username, password } = await request.json();
 
   if (!username || !password) {
@@ -14,8 +15,8 @@ export async function POST(request) {
   }
 
   // 1. Check for Admin (Using Environment Variables)
-  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const adminUsername = cleanEnv(process.env.ADMIN_USERNAME) || 'admin';
+  const adminPassword = cleanEnv(process.env.ADMIN_PASSWORD) || 'admin123';
 
   if (username === adminUsername && password === adminPassword) {
     const cookieStore = await cookies();
@@ -40,6 +41,14 @@ export async function POST(request) {
   }
 
   // 2. Check for Student
+  // Connect to DB only if not admin login
+  try {
+    await connectToDatabase();
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    return NextResponse.json({ error: 'Gagal terhubung ke database' }, { status: 500 });
+  }
+
   const passwordHash = createHash('sha256').update(password).digest('hex');
   
   // We need to find the user AND check the password. 
