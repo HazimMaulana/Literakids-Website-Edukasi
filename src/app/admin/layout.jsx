@@ -66,7 +66,7 @@ export default function AdminLayout({ children }) {
                 L
               </div>
               <span className="font-dynapuff text-xl font-bold text-blue-600">
-                Literakids
+                Literakidz
               </span>
             </Link>
             <button 
@@ -115,7 +115,7 @@ export default function AdminLayout({ children }) {
                 </div>
                 <div>
                   <div className="font-semibold text-gray-900">Admin</div>
-                  <div className="text-xs text-gray-500">admin@literakids.com</div>
+                  <div className="text-xs text-gray-500">admin@literakidz.com</div>
                 </div>
               </div>
             </div>

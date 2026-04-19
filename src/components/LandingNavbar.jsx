@@ -16,7 +16,7 @@ export function LandingNavbar() {
               <div className="backdrop-blur-sm px-4 py-2 rounded-full shadow-lg flex items-center bg-white/40">
                 <img 
                   src="/assets/logoLiterakidz.png" 
-                  alt="Literakids" 
+                  alt="Literakidz" 
                   className="h-8 w-auto object-contain"
                 />
               </div>
@@ -25,7 +25,7 @@ export function LandingNavbar() {
             <div className="flex items-center gap-3">
               <Link
                 href="/login"
-                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white rounded-full transition-all shadow-lg border border-white/20 font-semibold"
+                className="flex items-center gap-2 px-6 py-2 bg-linear-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white rounded-full transition-all shadow-lg border border-white/20 font-semibold"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Masuk</span>

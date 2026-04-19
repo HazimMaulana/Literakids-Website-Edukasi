@@ -51,7 +51,7 @@ export function Navbar({ onLogout }) {
               <div className=" backdrop-blur-sm px-4 py-2 rounded-full shadow-lg  flex items-center">
                 <img 
                   src="/assets/logoLiterakidz.png" 
-                  alt="Literakids" 
+                  alt="Literakidz" 
                   className="h-8 w-auto object-contain"
                 />
               </div>

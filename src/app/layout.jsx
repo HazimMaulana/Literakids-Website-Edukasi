@@ -24,8 +24,8 @@ function LayoutWrapper({ children }) {
 }
 
 export const metadata = {
-  title: "Literakids",
-  description: "Literakids - Platform belajar membaca interaktif untuk anak-anak.",
+  title: "Literakidz",
+  description: "Literakidz - Platform belajar membaca interaktif untuk anak-anak.",
   icons: {
     icon: "/assets/logoLiterakidz.png",
     shortcut: "/assets/logoLiterakidz.png",

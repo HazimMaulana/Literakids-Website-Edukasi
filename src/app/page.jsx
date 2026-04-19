@@ -19,7 +19,7 @@ export default function LandingPage() {
   const usageSteps = [
     {
       title: 'Masuk dengan akunmu',
-      description: 'Login memakai nama dan kata sandi untuk membuka semua fitur belajar di Literakids.',
+      description: 'Login memakai nama dan kata sandi untuk membuka semua fitur belajar di Literakidz.',
       icon: CheckCircle2,
       accent: 'from-sky-500 to-cyan-400',
     },
@@ -68,7 +68,7 @@ export default function LandingPage() {
       university: 'Malang University',
       image: '/profile/tis.jpeg',
       description:
-        'Memanfaatkan pengetahuan dan pengalaman dalam pendidikan untuk memastikan konten cerita dan aktivitas di Literakids sesuai dengan kebutuhan belajar anak-anak.',
+        'Memanfaatkan pengetahuan dan pengalaman dalam pendidikan untuk memastikan konten cerita dan aktivitas di Literakidz sesuai dengan kebutuhan belajar anak-anak.',
       socials: [
         { label: 'Instagram', href: 'https://instagram.com/titisdea_', icon: Instagram },
         { label: 'LinkedIn', href: 'https://linkedin.com/in/', icon: Linkedin },
@@ -80,7 +80,7 @@ export default function LandingPage() {
       university: 'Mataram University',
       image: '/profile/jim.jpg',
       description:
-        'Mengembangkan dan memelihara platform Literakids dengan teknologi terkini untuk memberikan pengalaman belajar membaca yang interaktif, aman, dan menyenangkan bagi anak-anak.',
+        'Mengembangkan dan memelihara platform Literakidz dengan teknologi terkini untuk memberikan pengalaman belajar membaca yang interaktif, aman, dan menyenangkan bagi anak-anak.',
       socials: [
         { label: 'Instagram', href: 'https://instagram.com/hazim_maulana', icon: Instagram },
         { label: 'LinkedIn', href: 'https://linkedin.com/in/hazim-maulana-698192396/', icon: Linkedin },
@@ -113,7 +113,7 @@ export default function LandingPage() {
             </span>
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-2xl text-slate-800 mb-10 font-bold">
-            Literakids hadir untuk menemani anak-anak belajar membaca dengan cerita interaktif, 
+            Literakidz hadir untuk menemani anak-anak belajar membaca dengan cerita interaktif, 
             jurnal harian, dan aktivitas seru lainnya.
           </p>
           
@@ -248,7 +248,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-3">
-              Tim di Balik Literakids
+              Tim di Balik Literakidz
             </h2>
             <p className="max-w-2xl mx-auto text-slate-700 text-lg">
               Dua pengembang yang berkolaborasi untuk menghadirkan pengalaman belajar membaca yang hangat, aman, dan interaktif.
