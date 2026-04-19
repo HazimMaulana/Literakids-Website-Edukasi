@@ -45,7 +45,7 @@ export function Navbar({ onLogout }) {
         <div className="bg-white/20 backdrop-blur-xl rounded-2xl px-4 py-3 border border-white/30 shadow-xl">
           <div className="flex items-center justify-between">
             <Link 
-              href="/"
+              href="/dashboard"
               className="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <div className=" backdrop-blur-sm px-4 py-2 rounded-full shadow-lg  flex items-center">

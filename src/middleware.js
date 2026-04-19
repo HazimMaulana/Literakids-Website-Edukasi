@@ -10,6 +10,7 @@ export function middleware(request) {
     pathname.startsWith('/api/auth') || 
     pathname.startsWith('/_next') || 
     pathname.startsWith('/assets') || 
+    pathname.startsWith('/profile') || 
     pathname.startsWith('/backgroundImages') || 
     pathname.startsWith('/ornaments') || 
     pathname.startsWith('/webContoh') ||
