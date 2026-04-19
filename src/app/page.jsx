@@ -65,6 +65,7 @@ export default function LandingPage() {
     {
       name: 'Titis Dea Mascambuan',
       role: 'Education of Elementary School',
+      university: 'Malang University',
       image: '/profile/tis.jpeg',
       description:
         'Memanfaatkan pengetahuan dan pengalaman dalam pendidikan untuk memastikan konten cerita dan aktivitas di Literakids sesuai dengan kebutuhan belajar anak-anak.',
@@ -76,6 +77,7 @@ export default function LandingPage() {
     {
       name: 'Muhammad Hazim Maulana',
       role: 'Informatics Engineering',
+      university: 'Mataram University',
       image: '/profile/jim.jpg',
       description:
         'Mengembangkan dan memelihara platform Literakids dengan teknologi terkini untuk memberikan pengalaman belajar membaca yang interaktif, aman, dan menyenangkan bagi anak-anak.',
@@ -267,7 +269,8 @@ export default function LandingPage() {
                   />
                   <div className="flex-1">
                     <h3 className="text-2xl font-bold text-slate-900">{dev.name}</h3>
-                    <p className="text-slate-600 font-semibold mb-3">{dev.role}</p>
+                    <p className="text-slate-600 font-semibold">{dev.role}</p>
+                    <p className="text-sky-700 font-medium mb-3">{dev.university}</p>
                     <p className="text-slate-700 leading-relaxed mb-4">{dev.description}</p>
 
                     <div className="flex flex-wrap items-center gap-3">
