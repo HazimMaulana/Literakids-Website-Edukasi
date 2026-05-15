@@ -74,18 +74,18 @@ export default function LandingPage() {
         { label: 'LinkedIn', href: 'https://linkedin.com/in/', icon: Linkedin },
       ],
     },
-    {
-      name: 'Muhammad Hazim Maulana',
-      role: 'Informatics Engineering',
-      university: 'Mataram University',
-      image: '/profile/jim.jpg',
-      description:
-        'Mengembangkan dan memelihara platform Literakidz dengan teknologi terkini untuk memberikan pengalaman belajar membaca yang interaktif, aman, dan menyenangkan bagi anak-anak.',
-      socials: [
-        { label: 'Instagram', href: 'https://instagram.com/hazim_maulana', icon: Instagram },
-        { label: 'LinkedIn', href: 'https://linkedin.com/in/hazim-maulana-698192396/', icon: Linkedin },
-      ],
-    },
+    // {
+    //   name: 'Muhammad Hazim Maulana',
+    //   role: 'Informatics Engineering',
+    //   university: 'Mataram University',
+    //   image: '/profile/jim.jpg',
+    //   description:
+    //     'Mengembangkan dan memelihara platform Literakidz dengan teknologi terkini untuk memberikan pengalaman belajar membaca yang interaktif, aman, dan menyenangkan bagi anak-anak.',
+    //   socials: [
+    //     { label: 'Instagram', href: 'https://instagram.com/hazim_maulana', icon: Instagram },
+    //     { label: 'LinkedIn', href: 'https://linkedin.com/in/hazim-maulana-698192396/', icon: Linkedin },
+    //   ],
+    // },
   ];
 
   return (
