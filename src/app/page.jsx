@@ -86,7 +86,7 @@ export default function LandingPage() {
     //     { label: 'LinkedIn', href: 'https://linkedin.com/in/hazim-maulana-698192396/', icon: Linkedin },
     //   ],
     // },
-  ];
+  ]; 
 
   return (
     <div className="min-h-screen bg-linear-to-br from-sky-200 via-indigo-100 to-purple-200">
@@ -248,14 +248,14 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-3">
-              Tim di Balik Literakidz
+              Orang di Balik Literakidz
             </h2>
             <p className="max-w-2xl mx-auto text-slate-700 text-lg">
-              Dua pengembang yang berkolaborasi untuk menghadirkan pengalaman belajar membaca yang hangat, aman, dan interaktif.
+              Pengembang yang menghadirkan pengalaman belajar membaca yang hangat, aman, dan interaktif.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1">
             {developers.map((dev) => (
               <article
                 key={dev.name}
