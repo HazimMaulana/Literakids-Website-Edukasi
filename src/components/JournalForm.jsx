@@ -63,7 +63,7 @@ export function JournalForm({ storyId, storyTitle, onCancel, onSuccess }) {
           Jurnal Membaca: {storyTitle}
         </h3>
         <div className="text-gray-600 mb-6 space-y-2">
-          <p>Jawab pertanyaan berikut:</p>
+          <p>Wah, hebat! Kamu sudah selesai membaca. Sekarang, jawablah pertanyaan berikut:</p>
           <ol className="list-decimal pl-6 space-y-1">
             <li>Peristiwa penting apa yang terjadi dalam cerita?</li>
             <li>Siapa saja tokoh dalam cerita dan bagaimana perannya?</li>
