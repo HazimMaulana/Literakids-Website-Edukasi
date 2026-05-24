@@ -62,9 +62,16 @@ export function JournalForm({ storyId, storyTitle, onCancel, onSuccess }) {
         <h3 className="font-dynapuff text-2xl font-bold text-gray-800 mb-4">
           Jurnal Membaca: {storyTitle}
         </h3>
-        <p className="text-gray-600 mb-6">
-          Wah, hebat! Kamu sudah selesai membaca. Sekarang, ceritakan apa yang kamu pelajari atau bagian mana yang paling kamu suka dari cerita ini?
-        </p>
+        <div className="text-gray-600 mb-6 space-y-2">
+          <p>Jawab pertanyaan berikut:</p>
+          <ol className="list-decimal pl-6 space-y-1">
+            <li>Peristiwa penting apa yang terjadi dalam cerita?</li>
+            <li>Siapa saja tokoh dalam cerita dan bagaimana perannya?</li>
+            <li>Nilai atau pelajaran apa yang kamu dapatkan dari cerita tersebut?</li>
+            <li>Bagian mana yang paling kamu sukai? Jelaskan alasannya.</li>
+            <li>Apa hubungan cerita ini dengan kehidupan sehari-hari atau budaya Sumbawa yang kamu ketahui?</li>
+          </ol>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
