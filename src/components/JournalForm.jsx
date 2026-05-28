@@ -65,11 +65,11 @@ export function JournalForm({ storyId, storyTitle, onCancel, onSuccess }) {
         <div className="text-gray-600 mb-6 space-y-2">
           <p>Wah, hebat! Kamu sudah selesai membaca. Sekarang, jawablah pertanyaan berikut:</p>
           <ol className="list-decimal pl-6 space-y-1">
-            <li>Peristiwa penting apa yang terjadi dalam cerita?</li>
             <li>Siapa saja tokoh dalam cerita dan bagaimana perannya?</li>
-            <li>Nilai atau pelajaran apa yang kamu dapatkan dari cerita tersebut?</li>
-            <li>Bagian mana yang paling kamu sukai? Jelaskan alasannya.</li>
-            <li>Apa hubungan cerita ini dengan kehidupan sehari-hari atau budaya Sumbawa yang kamu ketahui?</li>
+            <li>Di mana peristiwa dalam cerita terjadi?</li>
+            <li>Kapan peristiwa penting dalam cerita terjadi?</li>
+            <li>Apa masalah atau peristiwa penting yang terjadi dalam cerita?</li>
+            <li>Bagaimana cara tokoh menyelesaikan masalah dalam cerita, dan pelajaran apa yang kamu dapatkan?</li>
           </ol>
         </div>
 
